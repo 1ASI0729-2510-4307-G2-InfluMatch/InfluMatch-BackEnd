@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-@EnableJpaAuditing      
+@EnableJpaAuditing      // Habilita la auditoría automática (created_at, updated_at)
 public class InfluMatchBackEndApplication {
 
     public static void main(String[] args) {
