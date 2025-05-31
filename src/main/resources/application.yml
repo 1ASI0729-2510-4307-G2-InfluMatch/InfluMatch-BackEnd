@@ -1,3 +1,4 @@
+# src/main/resources/application.yml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/influ_match
@@ -6,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update     
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -17,9 +18,19 @@ spring:
     baseline-on-migrate: true
     enabled: false
 
-# ─── Swagger / OpenAPI ───
+# ─── JWT ──────────────────────────────────────────────────────────────
+security:
+  jwt:
+    # Secret en Base64 (al menos 256 bits = 32 bytes después de decodificar)
+    # Puedes generar uno con, por ejemplo:
+    #   openssl rand -base64 48   # (~384 bits, seguro)
+    secret: "+d9xAg2NvR/C9sbRt4g9Wc1NmmKeZ4eGwZa8iNLYsnA="
+    # Tiempo de expiración en segundos (opcional; si no está, usará 3600 por defecto)
+    exp-seconds: 3600
+
+# ─── Swagger / OpenAPI ────────────────────────────────────────────────
 springdoc:
   api-docs:
-    path: /api/docs           # <- ahora el JSON está aquí
+    path: /api/docs
   swagger-ui:
-    path: /api/swagger        # <- UI accesible en http://localhost:8080/api/swagger
+    path: /api/swagger

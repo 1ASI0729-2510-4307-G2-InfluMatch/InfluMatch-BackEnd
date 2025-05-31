@@ -1,0 +1,853 @@
+package com.influmatch.collaboration.domain.model;
+
+import com.influmatch.profiles.domain.model.BrandProfile;
+import com.influmatch.profiles.domain.model.InfluencerProfile;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Campaign extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private BrandProfile brand;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "infl_id")
+    private InfluencerProfile influencer;
+
+    @Column(nullable = false)
+    private String title;
+
+    private String brief;
+
+    @Enumerated(EnumType.STRING)
+    private CampaignStatusEnum status = CampaignStatusEnum.DRAFT;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+}
+
+package com.influmatch.collaboration.domain.model;
+
+public enum CampaignStatusEnum { DRAFT, ACTIVE, FINISHED, CANCELED }
+
+
+
+package com.influmatch.collaboration.domain.model;
+
+import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class CollaborationRequest extends BaseEntity {
+
+    /** Usuario que envía la solicitud */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_user_id")
+    private User fromUser;
+
+    /** Usuario que la recibe */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_user_id")
+    private User toUser;
+
+    @Enumerated(EnumType.STRING)
+    private RequestStatusEnum status = RequestStatusEnum.PENDING;
+
+    private String message;
+
+}
+
+package com.influmatch.collaboration.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Contract extends BaseEntity {
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "campaign_id", unique = true)
+    private Campaign campaign;
+
+    private String termsUrl;
+    private Instant signedBrandAt;
+    private Instant signedInflAt;
+
+}
+package com.influmatch.collaboration.domain.model;
+
+public enum RequestStatusEnum { PENDING, ACCEPTED, DECLINED, CANCELED }
+
+
+
+
+package com.influmatch.collaboration.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+import java.time.LocalDate;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class ScheduleItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id")
+    private Campaign campaign;
+
+    @Column(nullable = false)
+    private String title;
+
+    private LocalDate dueDate;
+    private Instant  doneAt;
+
+}
+
+package com.influmatch.collaboration.domain.repository;
+
+import com.influmatch.collaboration.domain.model.Campaign;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CampaignRepository extends JpaRepository<Campaign, Long> {}
+
+
+package com.influmatch.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig {
+
+    /**  Metadatos globales  ─  /api/docs  */
+    @Bean
+    public OpenAPI apiInfo() {
+        return new OpenAPI().info(
+            new Info()
+                .title("InfluMatch API")
+                .version("v1")
+                .description("""
+                     Endpoints para identity-access, profiles,
+                     collaboration, messaging, ratings y notifications.
+                     """)
+        );
+    }
+
+    /**  Grupo opcional solo Collaboration  */
+    @Bean
+    public GroupedOpenApi collaborationGroup() {
+        return GroupedOpenApi.builder()
+                .group("collaboration")
+                .packagesToScan("com.influmatch.collaboration")
+                .build();
+    }
+}
+
+package com.influmatch.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                        /* rutas “viejas” por compatibilidad */
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+
+                        /* rutas configuradas en application.yml */
+                        "/api/docs/**",
+                        "/api/swagger",        //   <─ NUEVA
+                        "/api/swagger/",       //   <─ NUEVA (con ‘/’)
+                        "/api/swagger.html",
+                        "/api/swagger/**"
+                ).permitAll()
+                .anyRequest().permitAll()     // ← solo mientras no tengas auth
+            );
+
+        return http.build();
+    }
+}
+
+package com.influmatch.identityaccess.domain.model;
+
+public enum RoleEnum { INFLUENCER, BRAND, ADMIN }
+
+
+package com.influmatch.identityaccess.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class User extends BaseEntity {
+
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatusEnum status = UserStatusEnum.PENDING;
+
+
+}
+
+
+
+package com.influmatch.identityaccess.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class UserSession extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false)
+    private String refreshToken;
+
+    @Column(nullable = false)
+    private Instant expiresAt;
+
+}
+
+package com.influmatch.identityaccess.domain.model;
+
+public enum UserStatusEnum { ACTIVE, PENDING, BLOCKED }
+
+package com.influmatch.identityaccess.domain.repository;
+
+import com.influmatch.identityaccess.domain.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    boolean existsByEmail(String email);
+}
+package com.influmatch.messaging.domain.model;
+
+import com.influmatch.collaboration.domain.model.Campaign;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Dialog extends BaseEntity {
+
+    /** Dialogo puede estar asociado a una campaña (o ser independiente) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id")         // FK nullable
+    private Campaign campaign;
+
+}
+
+package com.influmatch.messaging.domain.model;
+
+import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.profiles.domain.model.MediaAsset;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Message extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dialog_id")
+    private Dialog dialog;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    /** Texto del mensaje */
+    private String body;
+
+    /** Adjunta un asset opcional (imagen/video) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asset_id")
+    private MediaAsset asset;
+
+    private Instant readAt;
+
+}
+
+
+package com.influmatch.messaging.domain.repository;
+
+import com.influmatch.messaging.domain.model.Dialog;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface DialogRepository extends JpaRepository<Dialog, Long> {}
+
+
+package com.influmatch.notifications.domain.model;
+
+import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Notification extends BaseEntity  {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    private NotifTypeEnum type;
+
+    /** JSON payload; usa String o Map + converter */
+    @Column(columnDefinition = "jsonb")
+    private String payload;
+
+    private Instant readAt;
+
+}
+
+package com.influmatch.notifications.domain.model;
+
+public enum NotifTypeEnum {
+    NEW_REQUEST, MSG, SCHEDULE, RATING
+}
+
+
+package com.influmatch.profiles.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import com.influmatch.identityaccess.domain.model.User;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class BrandProfile extends BaseEntity {
+
+   
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false)
+    private String companyName;
+
+    private String description;
+    private String industry;
+    private String websiteUrl;
+    private String logoUrl;
+
+}
+package com.influmatch.profiles.domain.model;
+
+import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class InfluencerProfile extends BaseEntity {
+    
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;                  // FK → users.user_id
+
+    @Column(nullable = false)
+    private String displayName;
+
+    private String bio;
+    private String category;
+    private String country;
+    private Long   followersCount = 0L;
+
+}
+package com.influmatch.profiles.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class InfluencerSocialLink extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "infl_id")
+    private InfluencerProfile influencer;
+
+    @Enumerated(EnumType.STRING)
+    private PlatformEnum platform;
+
+    @Column(nullable = false)
+    private String url;
+}
+
+package com.influmatch.profiles.domain.model;
+
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class MediaAsset extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "infl_id")
+    private InfluencerProfile influencer;
+
+    @Column(nullable = false)
+    private String url;
+
+    @Enumerated(EnumType.STRING)
+    private MediaTypeEnum mediaType;
+
+    private String title;
+    private String description;
+    private Long   sizeBytes;
+
+    @Column(columnDefinition = "jsonb")
+    private String metadata;                  // usa String o Map→Json con @Type
+
+    @CreationTimestamp
+    private Instant uploadedAt;
+}
+
+package com.influmatch.profiles.domain.model;
+
+public enum MediaTypeEnum { IMAGE, VIDEO, DOC }
+package com.influmatch.profiles.domain.model;
+
+public enum PlatformEnum { IG, YT, TT, FB, TW, LN, OTHER }
+
+
+
+
+
+package com.influmatch.ratings.domain.model;
+
+import com.influmatch.collaboration.domain.model.Campaign;
+import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+@Entity
+@Getter @Setter @NoArgsConstructor
+public class Rating extends BaseEntity {
+  
+    @ManyToOne(fetch = FetchType.LAZY)         // quien escribe
+    @JoinColumn(name = "writer_id")
+    private User writer;
+
+    @ManyToOne(fetch = FetchType.LAZY)         // a quién califica
+    @JoinColumn(name = "target_id")
+    private User target;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id")
+    private Campaign campaign;                 // nullable
+
+    @Column(nullable = false)
+    private short score;                       // 1-5
+
+    private String comment;
+
+}
+
+package com.influmatch.ratings.domain.repository;
+
+import com.influmatch.ratings.domain.model.Rating;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface RatingRepository extends JpaRepository<Rating, Long> {}
+
+package com.influmatch.shared.domain.model;
+
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ *  Entidad base para todo el dominio.
+ *
+ *  ▸ Contiene:
+ *      – id BIGINT autoincremental
+ *      – created_at / updated_at  (heredados de {@link TimestampedEntity})
+ *
+ *  Cualquier entidad de negocio hereda de aquí; así solo
+ *  mantenemos un “extends” y centralizamos cambios comunes.
+ */
+@MappedSuperclass
+@Getter @Setter
+public abstract class BaseEntity extends TimestampedEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+}
+
+package com.influmatch.shared.domain.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+
+/**
+ *  Añade auditoría temporal:
+ *   • created_at  – se fija al INSERT
+ *   • updated_at  – se actualiza en cada UPDATE
+ *
+ *  No crea tabla propia porque es @MappedSuperclass.
+ */
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+public abstract class TimestampedEntity {
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+}
+
+
+
+package com.influmatch.shared.infrastructure;
+
+import org.hibernate.boot.model.naming.Identifier;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
+import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
+
+/** Convierte CamelCase ➜ snake_case y añade plural simple (…s). */
+public class SnakePluralNamingStrategy extends PhysicalNamingStrategyStandardImpl {
+
+    @Override
+    public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment env) {
+        String snake = addUnderscores(name.getText());
+        String plural = snake.endsWith("s") ? snake : snake + "s";
+        return Identifier.toIdentifier(plural);
+    }
+
+    @Override
+    public Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment env) {
+        return Identifier.toIdentifier(addUnderscores(name.getText()));
+    }
+
+    /* camelCase ➜ camel_case */
+    private String addUnderscores(String text) {
+        return text                       // UserProfile → user_profile
+                .replaceAll("([a-z\\d])([A-Z])", "$1_$2")
+                .toLowerCase();
+    }
+}
+
+
+package com.influmatch;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+@SpringBootApplication
+@EnableJpaAuditing      
+public class InfluMatchBackEndApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(InfluMatchBackEndApplication.class, args);
+    }
+
+}
+
+package com.influmatch.notifications.domain.repository;
+
+import com.influmatch.notifications.domain.model.Notification;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.influmatch</groupId>
+    <artifactId>influmatch-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>InfluMatch-BackEnd</name>
+    <description>InfluMatch-BackEnd</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.5.0</version> 
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+       
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+
+
+src/
+├── main/
+│   ├── java/
+│   │   └── com/
+│   │       └── influmatch/
+│   │           ├── InfluMatchBackEndApplication.java
+│   │           ├── collaboration/
+│   │           │   └── domain/
+│   │           │       ├── model/
+│   │           │       │   ├── Campaign.java
+│   │           │       │   ├── CampaignStatusEnum.java
+│   │           │       │   ├── CollaborationRequest.java
+│   │           │       │   ├── Contract.java
+│   │           │       │   ├── RequestStatusEnum.java
+│   │           │       │   └── ScheduleItem.java
+│   │           │       └── repository/
+│   │           │           └── CampaignRepository.java
+│   │           ├── identityaccess/
+│   │           │   └── domain/
+│   │           │       ├── model/
+│   │           │       │   ├── RoleEnum.java
+│   │           │       │   ├── User.java
+│   │           │       │   ├── UserSession.java
+│   │           │       │   └── UserStatusEnum.java
+│   │           │       └── repository/
+│   │           │           └── UserRepository.java
+│   │           ├── messaging/
+│   │           │   └── domain/
+│   │           │       ├── model/
+│   │           │       │   ├── Dialog.java
+│   │           │       │   └── Message.java
+│   │           │       └── repository/
+│   │           │           └── DialogRepository.java
+│   │           ├── notifications/
+│   │           │   └── domain/
+│   │           │       ├── model/
+│   │           │       │   ├── Notification.java
+│   │           │       │   └── NotifTypeEnum.java
+│   │           │       └── repository/
+│   │           │           └── NotificationRepository.java
+│   │           ├── profiles/
+│   │           │   └── domain/
+│   │           │       └── model/
+│   │           │           ├── BrandProfile.java
+│   │           │           ├── InfluencerProfile.java
+│   │           │           ├── InfluencerSocialLink.java
+│   │           │           ├── MediaAsset.java
+│   │           │           ├── MediaTypeEnum.java
+│   │           │           └── PlatformEnum.java
+│   │           ├── ratings/
+│   │           │   └── domain/
+│   │           │       ├── model/
+│   │           │       │   └── Rating.java
+│   │           │       └── repository/
+│   │           │           └── RatingRepository.java
+│   │           └── shared/
+│   │               ├── domain/
+│   │               │   └── model/
+│   │               │       ├── BaseEntity.java
+│   │               │       └── TimestampedEntity.java
+│   │               └── infrastructure/
+│   │                   └── SnakePluralNamingStrategy.java
+│   └── resources/
+│       ├── application.yml
+│       └── db/
+│           └── migration/
+│               └── V1__init.sql
+└── test/
+    └── java/
+        └── com/
+            └── influmatch/
+                └── InfluMatchBackEndApplicationTests.java
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
