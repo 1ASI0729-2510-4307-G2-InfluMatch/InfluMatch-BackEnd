@@ -2,6 +2,7 @@
 package com.influmatch.identityaccess.application;
 
 import com.influmatch.identityaccess.application.exceptions.EmailInUseException;
+import com.influmatch.identityaccess.application.exceptions.InvalidCredentialsException;
 import com.influmatch.identityaccess.domain.model.RoleEnum;
 import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.identityaccess.domain.model.UserStatusEnum;
@@ -53,5 +54,28 @@ public class AuthService {
      */
     public String generateToken(User user) {
         return jwt.generate(user.getId(), user.getRole().name());
+    }
+
+    /**
+     * Autentica un usuario y retorna sus datos si las credenciales son válidas
+     * @throws InvalidCredentialsException si las credenciales son inválidas
+     */
+    @Transactional(readOnly = true)
+    public User login(String email, String password) {
+        User user = users.findByEmail(email)
+            .orElseThrow(InvalidCredentialsException::new);
+
+        if (!encoder.matches(password, user.getPasswordHash())) {
+            log.info("Intento de login fallido para el email: {}", email);
+            throw new InvalidCredentialsException();
+        }
+
+        if (user.getStatus() != UserStatusEnum.ACTIVE) {
+            log.info("Intento de login con cuenta inactiva: {}", email);
+            throw new InvalidCredentialsException();
+        }
+
+        log.info("Login exitoso para el usuario: {}", email);
+        return user;
     }
 }

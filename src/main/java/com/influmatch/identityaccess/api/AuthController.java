@@ -37,4 +37,20 @@ public class AuthController {
         
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+        User user = auth.login(req.email(), req.password());
+        String token = auth.generateToken(user);
+
+        var body = new LoginResponse(
+            user.getId(),
+            user.getEmail(), 
+            user.getRole().name(),
+            token,
+            "Login exitoso!"
+        );
+
+        return ResponseEntity.ok(body);
+    }
 }
