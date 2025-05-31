@@ -68,11 +68,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
- <groupId>org.flywaydb</groupId>
-  <artifactId>flyway-database-postgresql</artifactId>
-  <version>11.7.2</version>
-</dependency>
+       
     </dependencies>
 
     <build>

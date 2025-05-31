@@ -12,35 +12,23 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            /* ───── CSRF ───── */
-            .csrf(csrf -> csrf.disable())       // ➊ desactívalo o cámbialo a tu gusto
-
-            /* ───── AUTORIZACIONES ───── */
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                /* ➋ Swagger & OpenAPI  ─ rutas públicas  */
                 .requestMatchers(
-                        //  ruta “vieja”  (por si alguien la conoce)
+                        /* rutas “viejas” por compatibilidad */
                         "/v3/api-docs/**",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
 
-                        //  rutas “nuevas” según application.yml
+                        /* rutas configuradas en application.yml */
                         "/api/docs/**",
+                        "/api/swagger",        //   <─ NUEVA
+                        "/api/swagger/",       //   <─ NUEVA (con ‘/’)
                         "/api/swagger.html",
                         "/api/swagger/**"
                 ).permitAll()
-
-                /* ➌ Actuator - health (opcional) */
-                .requestMatchers("/actuator/health").permitAll()
-
-                /* ➍ Todo lo demás exige autenticación */
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()     // ← solo mientras no tengas auth
             );
-
-        /*  Aquí decides tu mecanismo de auth:  */
-        // http.httpBasic(Customizer.withDefaults());   // BASIC
-        // http.oauth2ResourceServer(oauth2 -> …);     // JWT
-        // http.formLogin(Customizer.withDefaults());  // sesión, etc.
 
         return http.build();
     }
