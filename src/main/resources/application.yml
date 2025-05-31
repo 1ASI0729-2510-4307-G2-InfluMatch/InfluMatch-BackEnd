@@ -4,10 +4,9 @@ spring:
     username: postgres
     password: secret123
 
-  # Hibernate solo valida la estructura
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate            # sólo valida en arranque
     properties:
       hibernate:
         format_sql: true
@@ -15,5 +14,12 @@ spring:
         physical_naming_strategy: com.influmatch.shared.infrastructure.SnakePluralNamingStrategy
 
   flyway:
-    baseline-on-migrate: true   # marca V1 si ya existen tablas
-    enabled: true               # Flyway corre en cada arranque
+    baseline-on-migrate: true
+    enabled: true
+
+# ─── Swagger / OpenAPI ───
+springdoc:
+  api-docs:
+    path: /api/docs           # <- ahora el JSON está aquí
+  swagger-ui:
+    path: /api/swagger        # <- UI accesible en http://localhost:8080/api/swagger
