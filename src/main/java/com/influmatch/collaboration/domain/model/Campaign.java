@@ -7,10 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -36,6 +33,4 @@ public class Campaign extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    @CreationTimestamp private Instant createdAt;
-    @UpdateTimestamp  private Instant updatedAt;
 }

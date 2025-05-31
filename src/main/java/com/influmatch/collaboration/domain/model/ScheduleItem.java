@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,7 +23,5 @@ public class ScheduleItem extends BaseEntity {
     private LocalDate dueDate;
     private Instant  doneAt;
 
-    @CreationTimestamp
-    private Instant createdAt;
 }
 

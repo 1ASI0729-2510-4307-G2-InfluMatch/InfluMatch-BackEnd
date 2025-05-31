@@ -3,10 +3,6 @@ package com.influmatch.identityaccess.domain.model;
 import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
@@ -25,6 +21,5 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserStatusEnum status = UserStatusEnum.PENDING;
 
-    @CreationTimestamp private Instant createdAt;
-    @UpdateTimestamp  private Instant updatedAt;
+
 }

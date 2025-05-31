@@ -1,19 +1,15 @@
 package com.influmatch.profiles.domain.model;
 
-import com.influmatch.shared.domain.model.TimestampedEntity;
+import com.influmatch.shared.domain.model.BaseEntity;
 import com.influmatch.identityaccess.domain.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class BrandProfile extends TimestampedEntity {
+public class BrandProfile extends BaseEntity {
 
    
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -28,8 +24,4 @@ public class BrandProfile extends TimestampedEntity {
     private String websiteUrl;
     private String logoUrl;
 
-    @CreationTimestamp
-    private Instant createdAt;
-    @UpdateTimestamp
-    private Instant updatedAt;
 }

@@ -6,9 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
@@ -29,6 +26,4 @@ public class CollaborationRequest extends BaseEntity {
 
     private String message;
 
-    @CreationTimestamp
-    private Instant createdAt;
 }

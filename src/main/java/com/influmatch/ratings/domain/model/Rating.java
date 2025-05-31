@@ -7,9 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
@@ -32,6 +30,4 @@ public class Rating extends BaseEntity {
 
     private String comment;
 
-    @CreationTimestamp
-    private Instant createdAt;
 }

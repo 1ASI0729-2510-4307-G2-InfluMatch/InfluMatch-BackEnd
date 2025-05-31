@@ -1,6 +1,6 @@
 package com.influmatch.profiles.domain.model;
 
-import com.influmatch.shared.domain.model.TimestampedEntity;
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +11,8 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class MediaAsset extends TimestampedEntity {
+public class MediaAsset extends BaseEntity {
 
-    
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "infl_id")
     private InfluencerProfile influencer;

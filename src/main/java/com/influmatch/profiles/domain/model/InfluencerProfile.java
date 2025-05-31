@@ -1,18 +1,13 @@
 package com.influmatch.profiles.domain.model;
 
 import com.influmatch.identityaccess.domain.model.User;
-import com.influmatch.shared.domain.model.TimestampedEntity;
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class InfluencerProfile extends TimestampedEntity {
-
+public class InfluencerProfile extends BaseEntity {
     
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
@@ -26,6 +21,4 @@ public class InfluencerProfile extends TimestampedEntity {
     private String country;
     private Long   followersCount = 0L;
 
-    @CreationTimestamp private Instant createdAt;
-    @UpdateTimestamp  private Instant updatedAt;
 }
