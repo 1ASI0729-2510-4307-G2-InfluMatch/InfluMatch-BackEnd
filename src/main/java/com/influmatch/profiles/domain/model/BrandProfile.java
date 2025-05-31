@@ -1,5 +1,6 @@
 package com.influmatch.profiles.domain.model;
 
+import com.influmatch.shared.domain.model.TimestampedEntity;
 import com.influmatch.identityaccess.domain.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,11 +13,9 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class BrandProfile {
+public class BrandProfile extends TimestampedEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                    // → brand_profiles.id
-
+   
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;

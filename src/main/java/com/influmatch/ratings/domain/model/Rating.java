@@ -2,6 +2,7 @@ package com.influmatch.ratings.domain.model;
 
 import com.influmatch.collaboration.domain.model.Campaign;
 import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,12 +13,8 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class Rating {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                           // → ratings.id
-
+public class Rating extends BaseEntity {
+  
     @ManyToOne(fetch = FetchType.LAZY)         // quien escribe
     @JoinColumn(name = "writer_id")
     private User writer;

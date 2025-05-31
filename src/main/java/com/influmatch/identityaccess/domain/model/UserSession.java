@@ -1,22 +1,17 @@
 package com.influmatch.identityaccess.domain.model;
 
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 
 import java.time.Instant;
-import java.util.UUID;
+
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class UserSession {
-
-    @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.UUID)      // Hibernate 6, map UUID ➜ database uuid
-    private UUID id;                 // -> user_session**s**.id
+public class UserSession extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")

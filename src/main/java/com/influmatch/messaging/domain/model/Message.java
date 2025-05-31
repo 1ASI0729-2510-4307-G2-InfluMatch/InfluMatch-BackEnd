@@ -2,6 +2,7 @@ package com.influmatch.messaging.domain.model;
 
 import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.profiles.domain.model.MediaAsset;
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,11 +13,7 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class Message {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                          // → messages.id
+public class Message extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "dialog_id")

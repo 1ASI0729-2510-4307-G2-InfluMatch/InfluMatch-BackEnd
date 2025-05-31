@@ -1,6 +1,7 @@
 package com.influmatch.profiles.domain.model;
 
 import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.TimestampedEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,11 +11,9 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class InfluencerProfile {
+public class InfluencerProfile extends TimestampedEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                    // → influencer_profiles.id
-
+    
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;                  // FK → users.user_id

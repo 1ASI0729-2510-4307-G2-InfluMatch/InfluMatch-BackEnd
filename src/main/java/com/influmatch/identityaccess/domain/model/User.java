@@ -1,5 +1,6 @@
 package com.influmatch.identityaccess.domain.model;
 
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,11 +10,8 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class User {
+public class User extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                          // -> users.id
 
     @Column(nullable = false, unique = true)
     private String email;

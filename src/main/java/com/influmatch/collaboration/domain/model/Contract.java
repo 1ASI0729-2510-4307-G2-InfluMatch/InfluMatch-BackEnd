@@ -1,5 +1,6 @@
 package com.influmatch.collaboration.domain.model;
 
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,11 +11,7 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class Contract {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                                   // → contracts.id
+public class Contract extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "campaign_id", unique = true)

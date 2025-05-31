@@ -1,5 +1,6 @@
 package com.influmatch.collaboration.domain.model;
 
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +12,7 @@ import java.time.LocalDate;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class ScheduleItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                                   // → schedule_items.id
+public class ScheduleItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campaign_id")

@@ -1,6 +1,7 @@
 package com.influmatch.collaboration.domain.model;
 
 import com.influmatch.identityaccess.domain.model.User;
+import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +12,7 @@ import java.time.Instant;
 
 @Entity
 @Getter @Setter @NoArgsConstructor
-public class CollaborationRequest {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                                   // → collaboration_requests.id
+public class CollaborationRequest extends BaseEntity {
 
     /** Usuario que envía la solicitud */
     @ManyToOne(fetch = FetchType.LAZY)
