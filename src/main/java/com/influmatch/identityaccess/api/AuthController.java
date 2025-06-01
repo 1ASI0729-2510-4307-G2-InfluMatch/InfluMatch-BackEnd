@@ -2,6 +2,7 @@
 package com.influmatch.identityaccess.api;
 
 import com.influmatch.identityaccess.application.AuthService;
+import com.influmatch.identityaccess.application.exceptions.InvalidCredentialsException;
 import com.influmatch.identityaccess.domain.model.RoleEnum;
 import com.influmatch.identityaccess.domain.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,23 +86,49 @@ public class AuthController {
         @ApiResponse(
             responseCode = "401",
             description = "Credenciales inválidas",
-            content = @Content
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                    @io.swagger.v3.oas.annotations.media.ExampleObject(
+                        name = "Usuario no existe",
+                        value = "{\"error\":\"email_not_found\",\"message\":\"El usuario no existe\"}"
+                    ),
+                    @io.swagger.v3.oas.annotations.media.ExampleObject(
+                        name = "Contraseña incorrecta",
+                        value = "{\"error\":\"invalid_password\",\"message\":\"Contraseña incorrecta\"}"
+                    )
+                }
+            )
         )
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
-        User user = auth.login(req.email(), req.password());
-        String token = auth.generateToken(user);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+        try {
+            User user = auth.login(req.email(), req.password());
+            String token = auth.generateToken(user);
 
-        var body = new LoginResponse(
-            user.getId(),
-            user.getEmail(), 
-            user.getRole().name(),
-            token,
-            "Login exitoso!"
-        );
+            var body = new LoginResponse(
+                user.getId(),
+                user.getEmail(), 
+                user.getRole().name(),
+                token,
+                "Login exitoso!"
+            );
 
-        return ResponseEntity.ok(body);
+            return ResponseEntity.ok(body);
+        } catch (InvalidCredentialsException e) {
+            String error = e.getMessage();
+            String message = switch (error) {
+                case "email_not_found" -> "El usuario no existe";
+                case "invalid_password" -> "Contraseña incorrecta";
+                default -> "Credenciales inválidas";
+            };
+            
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(error, message));
+        }
     }
 
     @Operation(
