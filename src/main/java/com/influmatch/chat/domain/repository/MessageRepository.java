@@ -1,6 +1,8 @@
 package com.influmatch.chat.domain.repository;
 
 import com.influmatch.chat.domain.model.Message;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +20,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     boolean existsUnreadInDialog(Long dialogId);
 
     void deleteByDialogId(Long dialogId);
+
+    Page<Message> findByDialogIdOrderByCreatedAtDesc(Long dialogId, Pageable pageable);
 } 

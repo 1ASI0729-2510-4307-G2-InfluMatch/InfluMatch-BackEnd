@@ -246,10 +246,12 @@ public class DialogController {
             messages.stream()
                 .map(msg -> new MessageResponse(
                     msg.getId(),
+                    msg.getDialog().getId(),
                     msg.getSenderId(),
                     msg.getContent(),
-                    msg.getReadAt(),
-                    msg.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                    msg.getAssetId(),
+                    msg.getCreatedAt(),
+                    msg.getReadAt()
                 ))
                 .toList(),
             dialog.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDateTime(),
