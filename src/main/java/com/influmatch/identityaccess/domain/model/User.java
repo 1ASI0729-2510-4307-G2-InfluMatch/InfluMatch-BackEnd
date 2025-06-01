@@ -19,7 +19,7 @@ public class User extends BaseEntity {
     private RoleEnum role;
 
     @Enumerated(EnumType.STRING)
-    private UserStatusEnum status = UserStatusEnum.PENDING;
+    private UserStatusEnum status = UserStatusEnum.INACTIVE;
 
 
 }

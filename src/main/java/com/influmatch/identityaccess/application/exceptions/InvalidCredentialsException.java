@@ -2,6 +2,10 @@ package com.influmatch.identityaccess.application.exceptions;
 
 public class InvalidCredentialsException extends RuntimeException {
     public InvalidCredentialsException() {
-        super("Credenciales inválidas");
+        super("Invalid credentials");
+    }
+    
+    public InvalidCredentialsException(String message) {
+        super(message);
     }
 } 
