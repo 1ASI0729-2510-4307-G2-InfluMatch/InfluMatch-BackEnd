@@ -1,36 +1,36 @@
 package com.influmatch.collaboration.domain.model;
 
-import com.influmatch.profiles.domain.model.BrandProfile;
-import com.influmatch.profiles.domain.model.InfluencerProfile;
 import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
-@Getter @Setter @NoArgsConstructor
+@Table(name = "campaigns")
+@Getter @Setter
 public class Campaign extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id")
-    private BrandProfile brand;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "infl_id")
-    private InfluencerProfile influencer;
+    @Column(nullable = false)
+    private Long brandId;  // ID de la marca que crea la campaña
 
     @Column(nullable = false)
-    private String title;
+    private Long influencerId;  // ID del influencer seleccionado
 
-    private String brief;
+    @Column(nullable = false, length = 100)
+    private String title;  // Título de la campaña
+
+    @Column(length = 2000)
+    private String brief;  // Descripción/brief de la campaña
 
     @Enumerated(EnumType.STRING)
-    private CampaignStatusEnum status = CampaignStatusEnum.DRAFT;
+    @Column(nullable = false)
+    private CampaignStatus status = CampaignStatus.DRAFT;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+    @Column(nullable = false)
+    private LocalDate startDate;  // Fecha de inicio
 
+    @Column(nullable = false)
+    private LocalDate endDate;    // Fecha de fin
 }
