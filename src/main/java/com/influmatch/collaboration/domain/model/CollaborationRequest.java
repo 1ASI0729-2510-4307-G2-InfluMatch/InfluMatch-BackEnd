@@ -1,29 +1,25 @@
 package com.influmatch.collaboration.domain.model;
 
-import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.shared.domain.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Getter @Setter @NoArgsConstructor
+@Table(name = "collaboration_requests")
+@Getter @Setter
 public class CollaborationRequest extends BaseEntity {
 
-    /** Usuario que envía la solicitud */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_user_id")
-    private User fromUser;
+    @Column(nullable = false)
+    private Long fromUserId;  // ID del usuario que envía la solicitud
 
-    /** Usuario que la recibe */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_user_id")
-    private User toUser;
+    @Column(nullable = false)
+    private Long toUserId;    // ID del usuario que recibe la solicitud
+
+    @Column(length = 1000)
+    private String message;   // Mensaje opcional de la solicitud
 
     @Enumerated(EnumType.STRING)
-    private RequestStatusEnum status = RequestStatusEnum.PENDING;
-
-    private String message;
-
+    @Column(nullable = false)
+    private CollaborationStatus status = CollaborationStatus.PENDING;
 }
