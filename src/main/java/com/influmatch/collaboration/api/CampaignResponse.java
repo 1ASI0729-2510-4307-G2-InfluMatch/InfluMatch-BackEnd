@@ -4,7 +4,7 @@ import com.influmatch.collaboration.domain.model.CampaignStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Schema(description = "Detalles de una campaña")
 public record CampaignResponse(
@@ -32,9 +32,9 @@ public record CampaignResponse(
     @Schema(description = "Fecha de fin", example = "2024-07-01")
     LocalDate endDate,
 
-    @Schema(description = "Fecha de creación", example = "2024-05-31T12:00:00")
-    LocalDateTime createdAt,
+    @Schema(description = "Fecha de creación", example = "2024-05-31T12:00:00Z")
+    Instant createdAt,
 
-    @Schema(description = "Fecha de última actualización", example = "2024-05-31T12:00:00")
-    LocalDateTime updatedAt
+    @Schema(description = "Fecha de última actualización", example = "2024-05-31T12:00:00Z")
+    Instant updatedAt
 ) {} 

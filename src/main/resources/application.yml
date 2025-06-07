@@ -22,10 +22,8 @@ spring:
 security:
   jwt:
     # Secret en Base64 (al menos 256 bits = 32 bytes después de decodificar)
-    # Puedes generar uno con, por ejemplo:
-    #   openssl rand -base64 48   # (~384 bits, seguro)
-    secret: "+d9xAg2NvR/C9sbRt4g9Wc1NmmKeZ4eGwZa8iNLYsnA="
-    # Tiempo de expiración en segundos (opcional; si no está, usará 3600 por defecto)
+    secret: "bWlTdXBlclNlY3JldG9TZWN1cm9QYXJhRmlybWFyVG9rZW5zSldUQ29uQ2xhdmVEZTI1NkJpdHM="
+    # Tiempo de expiración en segundos
     exp-seconds: 3600
 
 # ─── Swagger / OpenAPI ────────────────────────────────────────────────

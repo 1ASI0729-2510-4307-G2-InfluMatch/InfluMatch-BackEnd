@@ -1,10 +1,13 @@
 package com.influmatch.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -43,13 +47,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Verifica si el token está en la lista negra
         if (blacklist.isBlacklisted(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"token_invalidated\",\"message\":\"Token ha sido invalidado\"}");
+            sendErrorResponse(response, "token_invalidated", "Token ha sido invalidado");
             return;
         }
 
         try {
+            if (!jwtUtil.validateToken(token)) {
+                sendErrorResponse(response, "invalid_token", "Token inválido");
+                return;
+            }
+
             String userId = jwtUtil.extractUserId(token);
             String role = jwtUtil.extractRole(token);
 
@@ -72,11 +79,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             chain.doFilter(request, response);
+        } catch (ExpiredJwtException e) {
+            log.error("JWT token expired: {}", e.getMessage());
+            sendErrorResponse(response, "token_expired", "Token ha expirado");
+        } catch (SignatureException e) {
+            log.error("Invalid JWT signature: {}", e.getMessage());
+            sendErrorResponse(response, "invalid_signature", "Firma del token inválida");
         } catch (Exception e) {
-            SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"invalid_token\",\"message\":\"Token inválido o expirado\"}");
+            log.error("JWT token validation failed: {}", e.getMessage());
+            sendErrorResponse(response, "invalid_token", "Token inválido o expirado");
         }
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String error, String message) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write(String.format("{\"error\":\"%s\",\"message\":\"%s\"}", error, message));
     }
 }

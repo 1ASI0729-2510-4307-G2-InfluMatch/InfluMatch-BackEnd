@@ -49,7 +49,16 @@ public class InfluencerService {
     @Transactional
     public InfluencerProfile update(Long id, String displayName, String bio,
                                   String category, String country, Long followersCount) {
-        InfluencerProfile profile = findById(id);
+        InfluencerProfile profile;
+        try {
+            profile = findById(id);
+        } catch (EntityNotFoundException e) {
+            // Si el perfil no existe, lo creamos
+            User user = userRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("user_not_found"));
+            profile = new InfluencerProfile();
+            profile.setUser(user);
+        }
 
         profile.setDisplayName(displayName);
         profile.setBio(bio);

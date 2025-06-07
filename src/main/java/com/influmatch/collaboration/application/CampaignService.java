@@ -5,8 +5,12 @@ import com.influmatch.collaboration.api.UpdateCampaignRequest;
 import com.influmatch.collaboration.application.exceptions.CampaignNotFoundException;
 import com.influmatch.collaboration.application.exceptions.InvalidCampaignStateException;
 import com.influmatch.collaboration.application.exceptions.NotAuthorizedCampaignException;
+import com.influmatch.collaboration.domain.assembler.CampaignAssembler;
 import com.influmatch.collaboration.domain.model.Campaign;
 import com.influmatch.collaboration.domain.model.CampaignStatus;
+import com.influmatch.collaboration.domain.model.valueObjects.CampaignTitle;
+import com.influmatch.collaboration.domain.model.valueObjects.CampaignBrief;
+import com.influmatch.collaboration.domain.model.valueObjects.CampaignPeriod;
 import com.influmatch.collaboration.domain.repository.CampaignRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,14 +38,7 @@ public class CampaignService {
 
     @Transactional
     public Campaign createCampaign(CreateCampaignRequest request, Long brandId) {
-        Campaign campaign = new Campaign();
-        campaign.setBrandId(brandId);
-        campaign.setInfluencerId(request.influencerId());
-        campaign.setTitle(request.title());
-        campaign.setBrief(request.brief());
-        campaign.setStartDate(request.startDate());
-        campaign.setEndDate(request.endDate());
-        
+        Campaign campaign = CampaignAssembler.toEntity(request, brandId);
         return campaignRepo.save(campaign);
     }
 
@@ -60,11 +57,21 @@ public class CampaignService {
         }
 
         // Actualizar campos si están presentes
-        if (request.title() != null) campaign.setTitle(request.title());
-        if (request.brief() != null) campaign.setBrief(request.brief());
-        if (request.status() != null) campaign.setStatus(request.status());
-        if (request.startDate() != null) campaign.setStartDate(request.startDate());
-        if (request.endDate() != null) campaign.setEndDate(request.endDate());
+        if (request.title() != null) {
+            campaign.setTitle(CampaignTitle.of(request.title()));
+        }
+        if (request.brief() != null) {
+            campaign.setBrief(CampaignBrief.of(request.brief()));
+        }
+        if (request.status() != null) {
+            campaign.setStatus(request.status());
+        }
+        if (request.startDate() != null || request.endDate() != null) {
+            campaign.setPeriod(CampaignPeriod.of(
+                request.startDate() != null ? request.startDate() : campaign.getPeriod().startDate(),
+                request.endDate() != null ? request.endDate() : campaign.getPeriod().endDate()
+            ));
+        }
 
         return campaignRepo.save(campaign);
     }

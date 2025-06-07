@@ -1,17 +1,14 @@
 package com.influmatch.profiles.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Datos para crear/actualizar perfil de influencer")
 public record InfluencerRequest(
     @Schema(
         description = "Nombre para mostrar",
-        example = "John Doe",
-        requiredMode = Schema.RequiredMode.REQUIRED
+        example = "John Doe"
     )
-    @NotBlank(message = "display_name_required")
     @Size(min = 3, max = 50, message = "display_name_length")
     String displayName,
 
