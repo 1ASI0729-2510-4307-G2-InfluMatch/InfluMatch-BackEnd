@@ -19,6 +19,9 @@ public record LoginResponse(
     @Schema(description = "Token JWT para autenticación", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     String token,
 
+    @Schema(description = "Indica si el usuario ya ha creado su perfil", example = "true")
+    boolean hasProfile,
+
     @Schema(description = "Mensaje de éxito", example = "Login exitoso!")
     String message
 ) {} 

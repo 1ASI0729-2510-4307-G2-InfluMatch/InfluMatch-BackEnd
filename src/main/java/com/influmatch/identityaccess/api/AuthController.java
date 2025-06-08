@@ -108,11 +108,14 @@ public class AuthController {
             User user = auth.login(req.email(), req.password());
             String token = auth.generateToken(user);
 
+            boolean hasProfile = auth.checkUserProfile(user.getId(), user.getRole());
+
             var body = new LoginResponse(
                 user.getId(),
                 user.getEmail(), 
                 user.getRole().name(),
                 token,
+                hasProfile,
                 "Login exitoso!"
             );
 

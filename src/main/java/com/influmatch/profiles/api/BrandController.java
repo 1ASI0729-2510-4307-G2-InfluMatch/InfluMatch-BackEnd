@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,7 +84,7 @@ public class BrandController {
 
     @Operation(
         summary = "Crear marca",
-        description = "Crea un nuevo perfil de marca"
+        description = "Crea un nuevo perfil de marca para el usuario autenticado"
     )
     @ApiResponses({
         @ApiResponse(
@@ -100,15 +102,16 @@ public class BrandController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "No autorizado para crear perfil con este userId",
+            description = "No autorizado",
             content = @Content
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('BRAND') and #userId == authentication.principal.id")
-    public ResponseEntity<BrandResponse> create(
-            @RequestParam Long userId,
-            @Valid @RequestBody BrandRequest request) {
+    @PreAuthorize("hasRole('BRAND')")
+    public ResponseEntity<BrandResponse> create(@Valid @RequestBody BrandRequest request) {
+        // Obtener el ID del usuario del token JWT
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = Long.parseLong(auth.getName());
         
         BrandProfile profile = service.create(
             userId,

@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,7 +84,7 @@ public class InfluencerController {
 
     @Operation(
         summary = "Crear influencer",
-        description = "Crea un nuevo perfil de influencer"
+        description = "Crea un nuevo perfil de influencer para el usuario autenticado"
     )
     @ApiResponses({
         @ApiResponse(
@@ -100,15 +102,16 @@ public class InfluencerController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "No autorizado para crear perfil con este userId",
+            description = "No autorizado",
             content = @Content
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('INFLUENCER') and #userId == authentication.principal.id")
-    public ResponseEntity<InfluencerResponse> create(
-            @RequestParam Long userId,
-            @Valid @RequestBody InfluencerRequest request) {
+    @PreAuthorize("hasRole('INFLUENCER')")
+    public ResponseEntity<InfluencerResponse> create(@Valid @RequestBody InfluencerRequest request) {
+        // Obtener el ID del usuario del token JWT
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = Long.parseLong(auth.getName());
         
         InfluencerProfile profile = service.create(
             userId,

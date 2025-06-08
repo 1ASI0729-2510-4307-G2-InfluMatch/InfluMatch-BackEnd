@@ -8,6 +8,8 @@ import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.identityaccess.domain.model.UserStatusEnum;
 import com.influmatch.identityaccess.domain.repository.UserRepository;
 import com.influmatch.identityaccess.domain.repository.UserSessionRepository;
+import com.influmatch.profiles.domain.repository.BrandProfileRepository;
+import com.influmatch.profiles.domain.repository.InfluencerProfileRepository;
 import com.influmatch.security.JwtUtil;
 import com.influmatch.security.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final UserSessionRepository sessionRepo;
+    private final BrandProfileRepository brandRepo;
+    private final InfluencerProfileRepository influencerRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final TokenBlacklistService blacklist;
@@ -92,5 +96,17 @@ public class AuthService {
         sessionRepo.deleteAllByUserId(userId);
         
         log.info("User {} logged out successfully", userId);
+    }
+
+    /**
+     * Verifica si el usuario ya tiene un perfil creado
+     */
+    @Transactional(readOnly = true)
+    public boolean checkUserProfile(Long userId, RoleEnum role) {
+        return switch (role) {
+            case BRAND -> brandRepo.existsByUserId(userId);
+            case INFLUENCER -> influencerRepo.existsByUserId(userId);
+            default -> false;
+        };
     }
 }
