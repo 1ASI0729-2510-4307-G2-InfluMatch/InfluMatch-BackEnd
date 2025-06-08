@@ -119,7 +119,8 @@ public class InfluencerController {
             request.bio(),
             request.category(),
             request.country(),
-            request.followersCount()
+            request.followersCount(),
+            request.profilePictureBase64()
         );
 
         return ResponseEntity
@@ -163,7 +164,8 @@ public class InfluencerController {
             request.bio(),
             request.category(),
             request.country(),
-            request.followersCount()
+            request.followersCount(),
+            request.profilePictureBase64()
         );
 
         return ResponseEntity.ok(toResponse(profile));
@@ -205,6 +207,7 @@ public class InfluencerController {
             profile.getCategory(),
             profile.getCountry(),
             profile.getFollowersCount(),
+            profile.getProfilePicture() != null ? profile.getProfilePicture().getId() : null,
             "Operación exitosa"
         );
     }

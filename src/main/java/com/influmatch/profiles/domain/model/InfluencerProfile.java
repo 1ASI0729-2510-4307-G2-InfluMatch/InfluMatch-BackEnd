@@ -3,6 +3,7 @@ package com.influmatch.profiles.domain.model;
 import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.shared.domain.model.BaseEntity;
 import com.influmatch.profiles.domain.model.valueobjects.*;
+import com.influmatch.media.domain.model.MediaFile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,10 @@ public class InfluencerProfile extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_picture_id")
+    private MediaFile profilePicture;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "display_name"))

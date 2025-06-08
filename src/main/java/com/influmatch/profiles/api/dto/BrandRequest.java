@@ -44,5 +44,11 @@ public record BrandRequest(
     )
     @Pattern(regexp = "^(https?://)?[\\w-]+(\\.[\\w-]+)+([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?$",
              message = "logo_url_invalid")
-    String logoUrl
+    String logoUrl,
+
+    @Schema(
+        description = "Imagen de perfil en base64",
+        example = "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+    )
+    String profilePictureBase64
 ) {} 

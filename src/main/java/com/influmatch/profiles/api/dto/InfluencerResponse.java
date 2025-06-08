@@ -2,21 +2,21 @@ package com.influmatch.profiles.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Datos de perfil de influencer")
+@Schema(description = "Respuesta con datos de perfil de influencer")
 public record InfluencerResponse(
     @Schema(description = "ID del perfil", example = "1")
     Long id,
 
-    @Schema(description = "ID del usuario asociado", example = "1")
+    @Schema(description = "ID del usuario", example = "1")
     Long userId,
 
-    @Schema(description = "Nombre para mostrar", example = "John Doe")
+    @Schema(description = "Nombre a mostrar", example = "John Doe")
     String displayName,
 
-    @Schema(description = "Biografía", example = "Lifestyle & Tech influencer")
+    @Schema(description = "Biografía", example = "Lifestyle influencer")
     String bio,
 
-    @Schema(description = "Categoría principal", example = "LIFESTYLE")
+    @Schema(description = "Categoría", example = "LIFESTYLE")
     String category,
 
     @Schema(description = "País", example = "España")
@@ -25,6 +25,9 @@ public record InfluencerResponse(
     @Schema(description = "Número de seguidores", example = "10000")
     Long followersCount,
 
-    @Schema(description = "Mensaje de la operación", example = "Perfil encontrado exitosamente")
+    @Schema(description = "ID de la foto de perfil", example = "1")
+    Long profilePictureId,
+
+    @Schema(description = "Mensaje de la operación", example = "Operación exitosa")
     String message
 ) {} 

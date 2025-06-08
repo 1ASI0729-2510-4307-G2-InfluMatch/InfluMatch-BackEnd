@@ -119,7 +119,8 @@ public class BrandController {
             request.description(),
             request.industry(),
             request.websiteUrl(),
-            request.logoUrl()
+            request.logoUrl(),
+            request.profilePictureBase64()
         );
 
         return ResponseEntity
@@ -163,7 +164,8 @@ public class BrandController {
             request.description(),
             request.industry(),
             request.websiteUrl(),
-            request.logoUrl()
+            request.logoUrl(),
+            request.profilePictureBase64()
         );
 
         return ResponseEntity.ok(toResponse(profile));
@@ -205,6 +207,7 @@ public class BrandController {
             profile.getIndustry(),
             profile.getWebsiteUrl(),
             profile.getLogoUrl(),
+            profile.getProfilePicture() != null ? profile.getProfilePicture().getId() : null,
             "Operación exitosa"
         );
     }

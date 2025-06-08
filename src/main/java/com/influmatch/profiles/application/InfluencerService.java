@@ -2,6 +2,10 @@ package com.influmatch.profiles.application;
 
 import com.influmatch.identityaccess.domain.model.User;
 import com.influmatch.identityaccess.domain.repository.UserRepository;
+import com.influmatch.media.application.service.MediaService;
+import com.influmatch.media.domain.model.MediaFile;
+import com.influmatch.media.api.dto.MediaUploadRequest;
+import com.influmatch.media.domain.model.MediaType;
 import com.influmatch.profiles.domain.model.InfluencerProfile;
 import com.influmatch.profiles.domain.repository.InfluencerProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,6 +21,7 @@ public class InfluencerService {
 
     private final InfluencerProfileRepository influencerRepo;
     private final UserRepository userRepo;
+    private final MediaService mediaService;
 
     @Transactional(readOnly = true)
     public List<InfluencerProfile> findAll() {
@@ -31,7 +36,8 @@ public class InfluencerService {
 
     @Transactional
     public InfluencerProfile create(Long userId, String displayName, String bio, 
-                                  String category, String country, Long followersCount) {
+                                  String category, String country, Long followersCount,
+                                  String profilePictureBase64) {
         User user = userRepo.findById(userId)
             .orElseThrow(() -> new EntityNotFoundException("user_not_found"));
 
@@ -41,30 +47,50 @@ public class InfluencerService {
         profile.setBio(bio);
         profile.setCategory(category);
         profile.setCountry(country);
-        profile.setFollowersCount(followersCount);
+        profile.setFollowersCount(followersCount != null ? followersCount : 0L);
+
+        // Manejar la foto de perfil si se proporciona
+        if (profilePictureBase64 != null && !profilePictureBase64.isEmpty()) {
+            MediaUploadRequest mediaRequest = new MediaUploadRequest();
+            mediaRequest.setBase64Content(profilePictureBase64);
+            mediaRequest.setFilename("profile_picture.jpg");
+            mediaRequest.setContentType("image/jpeg");
+            mediaRequest.setType(MediaType.IMAGE);
+            mediaRequest.setDescription("Foto de perfil de influencer");
+            mediaRequest.setTitle("Foto de perfil");
+
+            MediaFile profilePicture = mediaService.uploadFile(mediaRequest, userId);
+            profile.setProfilePicture(profilePicture);
+        }
 
         return influencerRepo.save(profile);
     }
 
     @Transactional
     public InfluencerProfile update(Long id, String displayName, String bio,
-                                  String category, String country, Long followersCount) {
-        InfluencerProfile profile;
-        try {
-            profile = findById(id);
-        } catch (EntityNotFoundException e) {
-            // Si el perfil no existe, lo creamos
-            User user = userRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("user_not_found"));
-            profile = new InfluencerProfile();
-            profile.setUser(user);
-        }
+                                  String category, String country, Long followersCount,
+                                  String profilePictureBase64) {
+        InfluencerProfile profile = findById(id);
 
         profile.setDisplayName(displayName);
         profile.setBio(bio);
         profile.setCategory(category);
         profile.setCountry(country);
-        profile.setFollowersCount(followersCount);
+        profile.setFollowersCount(followersCount != null ? followersCount : 0L);
+
+        // Manejar la foto de perfil si se proporciona
+        if (profilePictureBase64 != null && !profilePictureBase64.isEmpty()) {
+            MediaUploadRequest mediaRequest = new MediaUploadRequest();
+            mediaRequest.setBase64Content(profilePictureBase64);
+            mediaRequest.setFilename("profile_picture.jpg");
+            mediaRequest.setContentType("image/jpeg");
+            mediaRequest.setType(MediaType.IMAGE);
+            mediaRequest.setDescription("Foto de perfil de influencer");
+            mediaRequest.setTitle("Foto de perfil");
+
+            MediaFile profilePicture = mediaService.uploadFile(mediaRequest, profile.getUser().getId());
+            profile.setProfilePicture(profilePicture);
+        }
 
         return influencerRepo.save(profile);
     }
