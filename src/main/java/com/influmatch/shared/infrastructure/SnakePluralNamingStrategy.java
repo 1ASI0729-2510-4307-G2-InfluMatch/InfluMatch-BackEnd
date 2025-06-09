@@ -1,7 +1,7 @@
 package com.influmatch.shared.infrastructure;
 
+import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
 /**
@@ -10,15 +10,12 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
  *       BrandProfile       -> brand_profiles
  *       createdAt (column) -> created_at
  */
-public class SnakePluralNamingStrategy extends PhysicalNamingStrategyStandardImpl {
+public class SnakePluralNamingStrategy extends CamelCaseToUnderscoresNamingStrategy {
 
     @Override
-    public Identifier toPhysicalTableName(Identifier name,
-                                          JdbcEnvironment env) {
-        String plural = name.getText().endsWith("s")
-                ? name.getText()
-                : name.getText() + "s";
-        return new Identifier(toSnake(plural), name.isQuoted());
+    public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {
+        String tableName = name.getText() + "s";
+        return super.toPhysicalTableName(Identifier.toIdentifier(tableName), context);
     }
 
     @Override
