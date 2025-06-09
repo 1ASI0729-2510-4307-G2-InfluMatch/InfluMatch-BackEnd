@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/influ_match
+    username: postgres
+    password: secret123
+
+  jpa:
+    hibernate:
+      ddl-auto: validate        # solo valida; Flyway se encarga del esquema
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        physical_naming_strategy: com.influmatch.shared.infrastructure.SnakePluralNamingStrategy
+
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+
+server:
+  port: 8080
