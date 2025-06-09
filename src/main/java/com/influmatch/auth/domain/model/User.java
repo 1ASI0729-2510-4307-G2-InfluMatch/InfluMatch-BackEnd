@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User implements UserDetails {
@@ -24,9 +24,14 @@ public class User implements UserDetails {
     private Long id;
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
     private Email email;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "password")),
+        @AttributeOverride(name = "hashedValue", column = @Column(name = "hashed_password"))
+    })
     private Password password;
 
     @Enumerated(EnumType.STRING)

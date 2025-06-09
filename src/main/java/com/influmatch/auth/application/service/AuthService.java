@@ -3,6 +3,7 @@ package com.influmatch.auth.application.service;
 import com.influmatch.auth.application.assembler.UserAssembler;
 import com.influmatch.auth.application.dto.AuthResponse;
 import com.influmatch.auth.application.dto.LoginRequest;
+import com.influmatch.auth.application.dto.RefreshTokenRequest;
 import com.influmatch.auth.application.dto.RegisterRequest;
 import com.influmatch.auth.domain.model.User;
 import com.influmatch.auth.domain.model.valueobject.Email;
@@ -63,9 +64,14 @@ public class AuthService {
                 .build();
     }
 
-    public AuthResponse refreshToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
+        String userEmail = jwtService.extractUsername(request.getRefreshToken());
+        User user = userRepository.findByEmail(new Email(userEmail))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!jwtService.isTokenValid(request.getRefreshToken(), user)) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
 
         String newAccessToken = jwtService.generateToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);

@@ -2,6 +2,7 @@ package com.influmatch.auth.interfaces.controller;
 
 import com.influmatch.auth.application.dto.AuthResponse;
 import com.influmatch.auth.application.dto.LoginRequest;
+import com.influmatch.auth.application.dto.RefreshTokenRequest;
 import com.influmatch.auth.application.dto.RegisterRequest;
 import com.influmatch.auth.application.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,8 +88,7 @@ public class AuthController {
     @PostMapping("/refresh")
     @Operation(
         summary = "Refresh access token",
-        description = "Use refresh token from Authorization header to obtain a new pair of access and refresh tokens",
-        security = @SecurityRequirement(name = "Bearer Refresh Token")
+        description = "Use refresh token to obtain a new pair of access and refresh tokens"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -105,8 +105,11 @@ public class AuthController {
             content = @Content
         )
     })
-    public ResponseEntity<AuthResponse> refresh() {
-        return ResponseEntity.ok(authService.refreshToken());
+    public ResponseEntity<AuthResponse> refresh(
+            @Parameter(description = "Refresh token", required = true)
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        return ResponseEntity.ok(authService.refreshToken(request));
     }
 
     @PostMapping("/logout")
