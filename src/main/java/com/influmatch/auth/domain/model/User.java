@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends AuditableEntity implements UserDetails {

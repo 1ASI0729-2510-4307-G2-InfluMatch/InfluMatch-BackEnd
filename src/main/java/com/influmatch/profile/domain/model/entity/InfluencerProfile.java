@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "influencer_profiles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InfluencerProfile extends AuditableEntity {
@@ -29,7 +28,6 @@ public class InfluencerProfile extends AuditableEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "influencer_profile_niches",
         joinColumns = @JoinColumn(name = "influencer_profile_id")
     )
     @Column(name = "niche")
@@ -53,7 +51,6 @@ public class InfluencerProfile extends AuditableEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "influencer_profile_social_links",
         joinColumns = @JoinColumn(name = "influencer_profile_id")
     )
     private List<SocialLink> socialLinks = new ArrayList<>();
@@ -62,14 +59,12 @@ public class InfluencerProfile extends AuditableEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "influencer_profile_links",
         joinColumns = @JoinColumn(name = "influencer_profile_id")
     )
     private List<Link> links = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
-        name = "influencer_profile_attachments",
         joinColumns = @JoinColumn(name = "influencer_profile_id")
     )
     private List<Attachment> attachments = new ArrayList<>();

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "brand_profiles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BrandProfile extends AuditableEntity {
@@ -47,14 +46,12 @@ public class BrandProfile extends AuditableEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "brand_profile_links",
         joinColumns = @JoinColumn(name = "brand_profile_id")
     )
     private List<Link> links = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
-        name = "brand_profile_attachments",
         joinColumns = @JoinColumn(name = "brand_profile_id")
     )
     private List<Attachment> attachments = new ArrayList<>();

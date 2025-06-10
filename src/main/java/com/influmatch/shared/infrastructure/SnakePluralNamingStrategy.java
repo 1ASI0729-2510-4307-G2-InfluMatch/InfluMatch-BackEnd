@@ -14,9 +14,15 @@ public class SnakePluralNamingStrategy extends CamelCaseToUnderscoresNamingStrat
 
     @Override
     public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {
-        // Primero convertir a snake_case y luego añadir 's' para pluralizar
-        String tableName = toSnake(name.getText()) + "s";
-        return super.toPhysicalTableName(Identifier.toIdentifier(tableName), context);
+        // Primero convertir a snake_case
+        String tableName = toSnake(name.getText());
+        
+        // Solo pluralizar si no termina en 's'
+        if (!tableName.endsWith("s")) {
+            tableName = tableName + "s";
+        }
+        
+        return Identifier.toIdentifier(tableName);
     }
 
     @Override
@@ -25,9 +31,9 @@ public class SnakePluralNamingStrategy extends CamelCaseToUnderscoresNamingStrat
     }
 
     /* Convierte CamelCase → snake_case */
-    private String toSnake(String text) {
-        return text
-            .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase();
+    private String toSnake(String name) {
+        String regex = "([a-z])([A-Z])";
+        String replacement = "$1_$2";
+        return name.replaceAll(regex, replacement).toLowerCase();
     }
 }
