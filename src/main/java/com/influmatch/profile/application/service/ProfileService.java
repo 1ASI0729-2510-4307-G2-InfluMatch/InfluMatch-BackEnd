@@ -9,6 +9,7 @@ import com.influmatch.profile.domain.model.entity.InfluencerProfile;
 import com.influmatch.profile.domain.model.valueobject.Attachment;
 import com.influmatch.profile.domain.model.valueobject.Country;
 import com.influmatch.profile.domain.model.valueobject.Link;
+import com.influmatch.profile.domain.model.valueobject.MediaType;
 import com.influmatch.profile.domain.model.valueobject.SocialLink;
 import com.influmatch.profile.domain.repository.BrandProfileRepository;
 import com.influmatch.profile.domain.repository.InfluencerProfileRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,7 +84,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public ProfileResponse createInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto) {
+    public ProfileResponse createInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.INFLUENCER);
         validateProfileDoesNotExist(user.getId());
@@ -116,14 +118,48 @@ public class ProfileService {
                 .map(dto -> new Link(dto.getTitle(), dto.getUrl()))
                 .collect(Collectors.toList()));
 
-        List<Attachment> attachments = request.getAttachments().stream()
+        List<Attachment> attachments = new ArrayList<>();
+        
+        // Process attachment files if present
+        if (attachmentFiles != null && !attachmentFiles.isEmpty()) {
+            for (int i = 0; i < attachmentFiles.size(); i++) {
+                MultipartFile file = attachmentFiles.get(i);
+                if (file != null && !file.isEmpty()) {
+                    String extension = getFileExtension(file.getOriginalFilename());
+                    MediaType mediaType = getMediaTypeFromExtension(extension);
+                    
+                    // If there's metadata in the request, use it
+                    String title = "Attachment " + (i + 1);
+                    String description = "Uploaded file " + file.getOriginalFilename();
+                    if (request.getAttachments() != null && i < request.getAttachments().size()) {
+                        AttachmentDto metadata = request.getAttachments().get(i);
+                        title = metadata.getTitle();
+                        description = metadata.getDescription();
+                        mediaType = metadata.getMediaType();
+                    }
+                    
+                    attachments.add(new Attachment(
+                        title,
+                        description,
+                        mediaType,
+                        fileStorageService.storeFile(file)
+                    ));
+                }
+            }
+        }
+        // Only process base64 attachments if no files were provided
+        else if (request.getAttachments() != null) {
+            attachments.addAll(request.getAttachments().stream()
+                .filter(dto -> dto.getData() != null && !dto.getData().isEmpty())
                 .map(dto -> new Attachment(
                     dto.getTitle(),
                     dto.getDescription(),
                     dto.getMediaType(),
                     fileStorageService.storeBase64File(dto.getData(), getExtensionForMediaType(dto.getMediaType()))
                 ))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+        }
+        
         profile.setAttachments(attachments);
 
         InfluencerProfile savedProfile = influencerProfileRepository.save(profile);
@@ -206,7 +242,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public ProfileResponse updateInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto) {
+    public ProfileResponse updateInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.INFLUENCER);
 
@@ -246,17 +282,49 @@ public class ProfileService {
                     .collect(Collectors.toList()));
         }
 
-        if (request.getAttachments() != null) {
-            List<Attachment> attachments = request.getAttachments().stream()
-                    .map(dto -> new Attachment(
-                        dto.getTitle(),
-                        dto.getDescription(),
-                        dto.getMediaType(),
-                        fileStorageService.storeBase64File(dto.getData(), getExtensionForMediaType(dto.getMediaType()))
-                    ))
-                    .collect(Collectors.toList());
-            profile.setAttachments(attachments);
+        List<Attachment> attachments = new ArrayList<>();
+        
+        // Process attachment files if present
+        if (attachmentFiles != null && !attachmentFiles.isEmpty()) {
+            for (int i = 0; i < attachmentFiles.size(); i++) {
+                MultipartFile file = attachmentFiles.get(i);
+                if (file != null && !file.isEmpty()) {
+                    String extension = getFileExtension(file.getOriginalFilename());
+                    MediaType mediaType = getMediaTypeFromExtension(extension);
+                    
+                    // If there's metadata in the request, use it
+                    String title = "Attachment " + (i + 1);
+                    String description = "Uploaded file " + file.getOriginalFilename();
+                    if (request.getAttachments() != null && i < request.getAttachments().size()) {
+                        AttachmentDto metadata = request.getAttachments().get(i);
+                        title = metadata.getTitle();
+                        description = metadata.getDescription();
+                        mediaType = metadata.getMediaType();
+                    }
+                    
+                    attachments.add(new Attachment(
+                        title,
+                        description,
+                        mediaType,
+                        fileStorageService.storeFile(file)
+                    ));
+                }
+            }
         }
+        // Only process base64 attachments if no files were provided
+        else if (request.getAttachments() != null) {
+            attachments.addAll(request.getAttachments().stream()
+                .filter(dto -> dto.getData() != null && !dto.getData().isEmpty())
+                .map(dto -> new Attachment(
+                    dto.getTitle(),
+                    dto.getDescription(),
+                    dto.getMediaType(),
+                    fileStorageService.storeBase64File(dto.getData(), getExtensionForMediaType(dto.getMediaType()))
+                ))
+                .collect(Collectors.toList()));
+        }
+        
+        profile.setAttachments(attachments);
 
         return toInfluencerProfileResponse(influencerProfileRepository.save(profile));
     }
@@ -286,6 +354,23 @@ public class ProfileService {
         };
     }
 
+    private MediaType getMediaTypeFromExtension(String extension) {
+        if (extension == null) return MediaType.DOCUMENT;
+        
+        return switch (extension.toLowerCase()) {
+            case "jpg", "jpeg", "png", "gif" -> MediaType.PHOTO;
+            case "mp4", "mov", "avi" -> MediaType.VIDEO;
+            default -> MediaType.DOCUMENT;
+        };
+    }
+
+    private String getFileExtension(String filename) {
+        if (filename == null) return null;
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == -1) return null;
+        return filename.substring(lastDotIndex + 1).toLowerCase();
+    }
+
     private ProfileResponse toBrandProfileResponse(BrandProfile profile) {
         return ProfileResponse.builder()
                 .id(profile.getId())
@@ -293,8 +378,8 @@ public class ProfileService {
                 .sector(profile.getSector())
                 .country(profile.getCountry().getValue())
                 .description(profile.getDescription())
-                .logoUrl(profile.getLogoUrl())
-                .profilePhotoUrl(profile.getProfilePhotoUrl())
+                .logo(fileStorageService.readFileAsBase64(profile.getLogoUrl()))
+                .profilePhoto(fileStorageService.readFileAsBase64(profile.getProfilePhotoUrl()))
                 .websiteUrl(profile.getWebsiteUrl())
                 .location(profile.getLocation())
                 .links(profile.getLinks().stream()
@@ -305,6 +390,7 @@ public class ProfileService {
                                 .title(attachment.getTitle())
                                 .description(attachment.getDescription())
                                 .mediaType(attachment.getMediaType())
+                                .data(fileStorageService.readFileAsBase64(attachment.getMediaUrl()))
                                 .build())
                         .collect(Collectors.toList()))
                 .createdAt(profile.getCreatedAt())
@@ -319,8 +405,8 @@ public class ProfileService {
                 .niches(profile.getNiches().stream().toList())
                 .bio(profile.getBio())
                 .country(profile.getCountry().getValue())
-                .photoUrl(profile.getPhotoUrl())
-                .profilePhotoUrl(profile.getProfilePhotoUrl())
+                .photo(fileStorageService.readFileAsBase64(profile.getPhotoUrl()))
+                .profilePhoto(fileStorageService.readFileAsBase64(profile.getProfilePhotoUrl()))
                 .followers(profile.getFollowers())
                 .socialLinks(profile.getSocialLinks().stream()
                         .map(link -> new SocialLinkDto(link.getPlatform(), link.getUrl()))
@@ -334,6 +420,7 @@ public class ProfileService {
                                 .title(attachment.getTitle())
                                 .description(attachment.getDescription())
                                 .mediaType(attachment.getMediaType())
+                                .data(fileStorageService.readFileAsBase64(attachment.getMediaUrl()))
                                 .build())
                         .collect(Collectors.toList()))
                 .createdAt(profile.getCreatedAt())

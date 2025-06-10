@@ -77,6 +77,21 @@ public class FileStorageService {
         }
     }
 
+    public String readFileAsBase64(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return null;
+        }
+
+        try {
+            String relativePath = filePath.replace("/uploads/", "");
+            Path targetPath = uploadPath.resolve(relativePath);
+            byte[] fileData = Files.readAllBytes(targetPath);
+            return Base64.getEncoder().encodeToString(fileData);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read file", e);
+        }
+    }
+
     private String generateUniqueFilename(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);

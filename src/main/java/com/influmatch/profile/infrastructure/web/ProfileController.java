@@ -15,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
@@ -53,8 +55,9 @@ public class ProfileController {
     public ProfileResponse createInfluencerProfile(
             @Parameter(description = "Foto principal (opcional)") @RequestPart(required = false) MultipartFile photo,
             @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
+            @Parameter(description = "Archivos adjuntos (opcional)") @RequestPart(required = false) List<MultipartFile> attachments,
             @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateInfluencerProfileRequest request) {
-        return profileService.createInfluencerProfile(request, photo, profilePhoto);
+        return profileService.createInfluencerProfile(request, photo, profilePhoto, attachments);
     }
 
     @Operation(
@@ -115,7 +118,8 @@ public class ProfileController {
     public ProfileResponse updateInfluencerProfile(
             @Parameter(description = "Foto principal (opcional)") @RequestPart(required = false) MultipartFile photo,
             @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
+            @Parameter(description = "Archivos adjuntos (opcional)") @RequestPart(required = false) List<MultipartFile> attachments,
             @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateInfluencerProfileRequest request) {
-        return profileService.updateInfluencerProfile(request, photo, profilePhoto);
+        return profileService.updateInfluencerProfile(request, photo, profilePhoto, attachments);
     }
 } 

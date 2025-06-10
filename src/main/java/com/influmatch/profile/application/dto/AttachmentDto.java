@@ -27,6 +27,5 @@ public class AttachmentDto {
     private MediaType mediaType;
 
     @Schema(description = "Contenido del archivo en Base64")
-    @NotBlank(message = "Media data is required")
-    private String data;  // Base64 encoded data
+    private String data;  // Base64 encoded data, optional when using multipart files
 } 

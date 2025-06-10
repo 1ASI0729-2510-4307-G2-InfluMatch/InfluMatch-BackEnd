@@ -39,14 +39,14 @@ public class ProfileResponse {
     @Schema(description = "Descripción detallada (solo para marcas)")
     private String description;
 
-    @Schema(description = "URL del logo (solo para marcas)")
-    private String logoUrl;
+    @Schema(description = "Logo en base64 (solo para marcas)")
+    private String logo;
 
-    @Schema(description = "URL de la foto principal (solo para influencers)")
-    private String photoUrl;
+    @Schema(description = "Foto principal en base64 (solo para influencers)")
+    private String photo;
 
-    @Schema(description = "URL de la foto de perfil")
-    private String profilePhotoUrl;
+    @Schema(description = "Foto de perfil en base64")
+    private String profilePhoto;
 
     @Schema(description = "URL del sitio web (solo para marcas)")
     private String websiteUrl;
