@@ -15,12 +15,11 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
-@Tag(name = "Profiles", description = "Endpoints para gestión de perfiles de marcas e influencers")
+@Tag(name = "Perfiles", description = "API para gestionar perfiles de marcas e influencers")
 @SecurityRequirement(name = "bearerAuth")
 public class ProfileController {
     private final ProfileService profileService;
@@ -44,20 +43,17 @@ public class ProfileController {
 
     @Operation(
         summary = "Crear perfil de influencer",
-        description = "Crea un nuevo perfil para un influencer. Requiere rol INFLUENCER y no tener un perfil existente."
+        description = "Crea un nuevo perfil para un influencer usando JSON con datos base64. Requiere rol INFLUENCER y no tener un perfil existente."
     )
     @ApiResponse(
         responseCode = "200",
         description = "Perfil creado exitosamente",
         content = @Content(schema = @Schema(implementation = ProfileResponse.class))
     )
-    @PostMapping(value = "/influencer", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/influencer", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ProfileResponse createInfluencerProfile(
-            @Parameter(description = "Foto principal (opcional)") @RequestPart(required = false) MultipartFile photo,
-            @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
-            @Parameter(description = "Archivos adjuntos (opcional)") @RequestPart(required = false) List<MultipartFile> attachments,
-            @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateInfluencerProfileRequest request) {
-        return profileService.createInfluencerProfile(request, photo, profilePhoto, attachments);
+            @Parameter(description = "Datos del perfil", required = true) @RequestBody @Valid CreateInfluencerProfileRequest request) {
+        return profileService.createInfluencerProfile(request, null, null, null);
     }
 
     @Operation(
@@ -114,12 +110,9 @@ public class ProfileController {
         description = "Perfil actualizado exitosamente",
         content = @Content(schema = @Schema(implementation = ProfileResponse.class))
     )
-    @PutMapping(value = "/influencer/me", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(value = "/influencer/me", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ProfileResponse updateInfluencerProfile(
-            @Parameter(description = "Foto principal (opcional)") @RequestPart(required = false) MultipartFile photo,
-            @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
-            @Parameter(description = "Archivos adjuntos (opcional)") @RequestPart(required = false) List<MultipartFile> attachments,
-            @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateInfluencerProfileRequest request) {
-        return profileService.updateInfluencerProfile(request, photo, profilePhoto, attachments);
+            @Parameter(description = "Datos del perfil", required = true) @RequestBody @Valid CreateInfluencerProfileRequest request) {
+        return profileService.updateInfluencerProfile(request, null, null, null);
     }
 } 
