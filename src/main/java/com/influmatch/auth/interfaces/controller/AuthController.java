@@ -22,19 +22,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "Authentication management APIs")
+@Tag(name = "Autenticación", description = "APIs para registro, inicio de sesión y gestión de tokens")
 public class AuthController {
     private final AuthService authService;
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
     @PostMapping("/register")
     @Operation(
-        summary = "Register a new user",
-        description = "Register a new user with email, password and role (BRAND or INFLUENCER). Returns JWT tokens upon successful registration."
+        summary = "Registrar un nuevo usuario",
+        description = "Registra un nuevo usuario con email, contraseña y rol (BRAND o INFLUENCER). Devuelve tokens JWT al registrarse exitosamente."
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "User registered successfully",
+            description = "Usuario registrado exitosamente",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = AuthResponse.class)
@@ -42,12 +47,12 @@ public class AuthController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid input (email format, missing fields) or email already registered",
+            description = "Datos inválidos (formato de email, campos faltantes) o email ya registrado",
             content = @Content
         )
     })
     public ResponseEntity<AuthResponse> register(
-            @Parameter(description = "Registration details", required = true)
+            @Parameter(description = "Datos de registro", required = true)
             @Valid @RequestBody RegisterRequest request
     ) {
         return ResponseEntity.ok(authService.register(request));
@@ -55,13 +60,13 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(
-        summary = "Authenticate a user",
-        description = "Login with email and password to receive JWT tokens and profile completion status"
+        summary = "Iniciar sesión",
+        description = "Inicia sesión con email y contraseña para recibir tokens JWT y estado de completitud del perfil"
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Authentication successful",
+            description = "Autenticación exitosa",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = AuthResponse.class)
@@ -69,17 +74,17 @@ public class AuthController {
         ),
         @ApiResponse(
             responseCode = "401",
-            description = "Invalid credentials",
+            description = "Credenciales inválidas",
             content = @Content
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "User not found",
+            description = "Usuario no encontrado",
             content = @Content
         )
     })
     public ResponseEntity<AuthResponse> login(
-            @Parameter(description = "Login credentials", required = true)
+            @Parameter(description = "Credenciales de inicio de sesión", required = true)
             @Valid @RequestBody LoginRequest request
     ) {
         return ResponseEntity.ok(authService.login(request));
@@ -87,13 +92,13 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(
-        summary = "Refresh access token",
-        description = "Use refresh token to obtain a new pair of access and refresh tokens"
+        summary = "Refrescar token de acceso",
+        description = "Usa el token de refresco para obtener un nuevo par de tokens de acceso y refresco"
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Tokens refreshed successfully",
+            description = "Tokens renovados exitosamente",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = AuthResponse.class)
@@ -101,12 +106,12 @@ public class AuthController {
         ),
         @ApiResponse(
             responseCode = "401",
-            description = "Invalid or expired refresh token",
+            description = "Token de refresco inválido o expirado",
             content = @Content
         )
     })
     public ResponseEntity<AuthResponse> refresh(
-            @Parameter(description = "Refresh token", required = true)
+            @Parameter(description = "Token de refresco", required = true)
             @Valid @RequestBody RefreshTokenRequest request
     ) {
         return ResponseEntity.ok(authService.refreshToken(request));
@@ -114,19 +119,19 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(
-        summary = "Logout user",
-        description = "Invalidate the current session. Requires valid JWT token in Authorization header.",
-        security = @SecurityRequirement(name = "Bearer JWT")
+        summary = "Cerrar sesión",
+        description = "Invalida la sesión actual. Requiere un token JWT válido en el header Authorization.",
+        security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Logged out successfully",
+            description = "Sesión cerrada exitosamente",
             content = @Content
         ),
         @ApiResponse(
             responseCode = "401",
-            description = "Unauthorized - Valid JWT token required",
+            description = "No autorizado - Se requiere un token JWT válido",
             content = @Content
         )
     })
