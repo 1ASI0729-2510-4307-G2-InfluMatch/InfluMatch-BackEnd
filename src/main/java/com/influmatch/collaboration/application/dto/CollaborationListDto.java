@@ -27,6 +27,12 @@ public class CollaborationListDto {
     @Schema(description = "Nombre de la contraparte")
     private String counterpartName;
 
+    @Schema(description = "Mensaje de la colaboración")
+    private String message;
+
+    @Schema(description = "Tipo de acción", example = "REEL_IG")
+    private String actionType;
+
     @Schema(description = "Fecha de creación")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime createdAt;

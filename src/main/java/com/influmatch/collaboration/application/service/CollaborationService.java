@@ -16,8 +16,6 @@ import com.influmatch.profile.domain.model.entity.InfluencerProfile;
 import com.influmatch.profile.domain.repository.BrandProfileRepository;
 import com.influmatch.profile.domain.repository.InfluencerProfileRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,13 +67,15 @@ public class CollaborationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CollaborationListDto> listCollaborations(CollaborationStatus status, Pageable pageable) {
+    public List<CollaborationListDto> listCollaborations(CollaborationStatus status) {
         User currentUser = getCurrentUser();
-        Page<Collaboration> collaborations = status != null ?
-                collaborationRepository.findAllByUserAndStatus(currentUser.getId(), status, pageable) :
-                collaborationRepository.findAllByUser(currentUser.getId(), pageable);
+        List<Collaboration> collaborations = status != null ?
+                collaborationRepository.findAllByUserAndStatus(currentUser.getId(), status) :
+                collaborationRepository.findAllByUser(currentUser.getId());
 
-        return collaborations.map(this::toCollaborationListDto);
+        return collaborations.stream()
+                .map(this::toCollaborationListDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -193,6 +193,8 @@ public class CollaborationService {
                 .initiatorRole(collaboration.getInitiatorRole().toString())
                 .status(collaboration.getStatus().toString())
                 .counterpartName(getCounterpartName(collaboration, collaboration.getInitiatorId()))
+                .message(collaboration.getMessage())
+                .actionType(collaboration.getActionType().toString())
                 .createdAt(collaboration.getCreatedAt())
                 .build();
     }

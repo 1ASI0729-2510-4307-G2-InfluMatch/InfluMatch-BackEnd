@@ -25,6 +25,8 @@ public class CollaborationAssembler {
                 .initiatorRole(collaboration.getInitiatorRole().toString())
                 .status(collaboration.getStatus().toString())
                 .counterpartName(counterpartName)
+                .message(collaboration.getMessage())
+                .actionType(collaboration.getActionType().toString())
                 .createdAt(collaboration.getCreatedAt())
                 .build();
     }

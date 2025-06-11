@@ -4,6 +4,7 @@ public enum ActionType {
     POST_IG,
     STORY,
     VIDEO,
+    REEL_IG,
     EVENT,
     OTHER
 } 

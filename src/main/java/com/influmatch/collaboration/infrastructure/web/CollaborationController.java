@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +30,9 @@ public class CollaborationController {
 
     @GetMapping
     @Operation(summary = "List user's collaborations")
-    public ResponseEntity<Page<CollaborationListDto>> listCollaborations(
-            @RequestParam(required = false) CollaborationStatus status,
-            Pageable pageable) {
-        return ResponseEntity.ok(collaborationService.listCollaborations(status, pageable));
+    public ResponseEntity<List<CollaborationListDto>> listCollaborations(
+            @RequestParam(required = false) CollaborationStatus status) {
+        return ResponseEntity.ok(collaborationService.listCollaborations(status));
     }
 
     @GetMapping("/{id}")
