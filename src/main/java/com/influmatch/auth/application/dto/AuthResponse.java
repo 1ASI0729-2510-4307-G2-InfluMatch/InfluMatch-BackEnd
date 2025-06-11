@@ -20,4 +20,10 @@ public class AuthResponse {
 
     @Schema(description = "Indica si el usuario tiene un perfil completo", example = "false")
     private boolean profileCompleted;
+
+    @Schema(description = "ID del usuario autenticado", example = "123")
+    private Long userId;
+
+    @Schema(description = "URL de la foto de perfil del usuario", example = "https://example.com/photos/user123.jpg")
+    private String photoUrl;
 } 
