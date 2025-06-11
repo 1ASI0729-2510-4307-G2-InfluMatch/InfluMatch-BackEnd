@@ -147,6 +147,8 @@ public class CollaborationService {
                                 .collaborationId(collaboration.getId())
                                 .date(milestone.getDate().toString())
                                 .eventTitle(milestone.getTitle())
+                                .description(milestone.getDescription())
+                                .location(milestone.getLocation())
                                 .counterpartName(getCounterpartName(collaboration, currentUser.getId()))
                                 .build()))
                 .collect(Collectors.toList());
@@ -225,16 +227,27 @@ public class CollaborationService {
                 .build();
     }
 
-    private String getCounterpartName(Collaboration collaboration, Long userId) {
-        Long counterpartId = collaboration.getInitiatorId().equals(userId) ?
-                collaboration.getCounterpartId() : collaboration.getInitiatorId();
-
-        if (collaboration.getInitiatorRole() == UserRole.BRAND) {
-            return userId.equals(collaboration.getInitiatorId()) ?
-                    getInfluencerName(counterpartId) : getBrandName(counterpartId);
+    private String getCounterpartName(Collaboration collaboration, Long currentUserId) {
+        Long counterpartId;
+        if (collaboration.getInitiatorId().equals(currentUserId)) {
+            counterpartId = collaboration.getCounterpartId();
+        } else if (collaboration.getCounterpartId().equals(currentUserId)) {
+            counterpartId = collaboration.getInitiatorId();
         } else {
-            return userId.equals(collaboration.getInitiatorId()) ?
-                    getBrandName(counterpartId) : getInfluencerName(counterpartId);
+            throw new IllegalStateException("User is not part of this collaboration");
+        }
+
+        User counterpart = userRepository.findById(counterpartId)
+                .orElseThrow(() -> new IllegalStateException("Counterpart not found"));
+
+        if (counterpart.getRole() == UserRole.BRAND) {
+            return brandProfileRepository.findByUserId(counterpartId)
+                    .map(BrandProfile::getName)
+                    .orElse("Unknown Brand");
+        } else {
+            return influencerProfileRepository.findByUserId(counterpartId)
+                    .map(InfluencerProfile::getName)
+                    .orElse("Unknown Influencer");
         }
     }
 
@@ -258,17 +271,5 @@ public class CollaborationService {
                     .photoUrl(fileStorageService.readFileAsBase64(profile.getLogoUrl()))
                     .build();
         }
-    }
-
-    private String getBrandName(Long userId) {
-        return brandProfileRepository.findByUserId(userId)
-                .map(BrandProfile::getName)
-                .orElse("Unknown Brand");
-    }
-
-    private String getInfluencerName(Long userId) {
-        return influencerProfileRepository.findByUserId(userId)
-                .map(InfluencerProfile::getName)
-                .orElse("Unknown Influencer");
     }
 } 

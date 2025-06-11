@@ -10,16 +10,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Evento en la agenda de colaboraciones")
+@Schema(description = "Evento de agenda de una colaboración")
 public class AgendaEventDto {
     @Schema(description = "ID de la colaboración")
     private Long collaborationId;
 
-    @Schema(description = "Fecha del evento", example = "2025-07-12")
+    @Schema(description = "Fecha del evento", example = "2024-03-25")
     private String date;
 
-    @Schema(description = "Título del evento", example = "Publicación de Reel")
+    @Schema(description = "Título del evento", example = "Propuesta creativa")
     private String eventTitle;
+
+    @Schema(description = "Descripción del evento", example = "Presentación de ideas y concepto")
+    private String description;
+
+    @Schema(description = "Ubicación del evento", example = "Zoom")
+    private String location;
 
     @Schema(description = "Nombre de la contraparte")
     private String counterpartName;
