@@ -3,6 +3,7 @@ package com.influmatch.profile.application.service;
 import com.influmatch.auth.domain.model.User;
 import com.influmatch.auth.domain.model.UserRole;
 import com.influmatch.auth.domain.repository.UserRepository;
+import com.influmatch.auth.infrastructure.security.CurrentUser;
 import com.influmatch.profile.application.dto.*;
 import com.influmatch.profile.domain.model.entity.BrandProfile;
 import com.influmatch.profile.domain.model.entity.InfluencerProfile;
@@ -330,7 +331,9 @@ public class ProfileService {
     }
 
     private User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CurrentUser currentUser = (CurrentUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new IllegalStateException("User not found"));
     }
 
     private void validateUserRole(User user, UserRole expectedRole) {

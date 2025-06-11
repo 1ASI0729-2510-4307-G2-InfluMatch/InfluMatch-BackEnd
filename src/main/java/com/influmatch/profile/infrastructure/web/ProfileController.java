@@ -33,11 +33,16 @@ public class ProfileController {
         description = "Perfil creado exitosamente",
         content = @Content(schema = @Schema(implementation = ProfileResponse.class))
     )
-    @PostMapping(value = "/brand", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/brand")
     public ProfileResponse createBrandProfile(
-            @Parameter(description = "Logo de la marca (opcional)") @RequestPart(required = false) MultipartFile logo,
-            @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
-            @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateBrandProfileRequest request) {
+            @RequestPart(required = false) MultipartFile logo,
+            @RequestPart(required = false) MultipartFile profilePhoto,
+            @RequestPart(required = false) CreateBrandProfileRequest requestPart,
+            @RequestBody(required = false) CreateBrandProfileRequest requestBody) {
+        CreateBrandProfileRequest request = requestPart != null ? requestPart : requestBody;
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
         return profileService.createBrandProfile(request, logo, profilePhoto);
     }
 
