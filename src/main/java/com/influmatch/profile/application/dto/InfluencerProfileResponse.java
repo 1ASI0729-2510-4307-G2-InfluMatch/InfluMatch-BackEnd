@@ -15,46 +15,34 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Datos de un perfil (marca o influencer)")
-public class ProfileResponse {
+@Schema(description = "Datos de un perfil de influencer")
+public class InfluencerProfileResponse {
     @Schema(description = "ID del perfil")
     private Long id;
 
-    @Schema(description = "Nombre del perfil")
+    @Schema(description = "Nombre del influencer")
     private String name;
 
-    @Schema(description = "Sector o industria (solo para marcas)")
-    private String sector;
-
-    @Schema(description = "Lista de nichos o categorías (solo para influencers)")
+    @Schema(description = "Lista de nichos o categorías")
     @Builder.Default
     private List<String> niches = new ArrayList<>();
 
-    @Schema(description = "Biografía (solo para influencers)")
+    @Schema(description = "Biografía")
     private String bio;
 
     @Schema(description = "Código de país ISO 3166-1 alpha-2")
     private String country;
 
-    @Schema(description = "Descripción detallada (solo para marcas)")
-    private String description;
-
-    @Schema(description = "Logo en base64 (solo para marcas)")
-    private String logo;
-
-    @Schema(description = "Foto principal en base64 (solo para influencers)")
+    @Schema(description = "Foto principal en base64")
     private String photo;
 
     @Schema(description = "Foto de perfil en base64")
     private String profilePhoto;
 
-    @Schema(description = "URL del sitio web (solo para marcas)")
-    private String websiteUrl;
-
-    @Schema(description = "Número de seguidores (solo para influencers)")
+    @Schema(description = "Número de seguidores")
     private Integer followers;
 
-    @Schema(description = "Lista de enlaces a redes sociales (solo para influencers)")
+    @Schema(description = "Lista de enlaces a redes sociales")
     @Builder.Default
     private List<SocialLinkDto> socialLinks = new ArrayList<>();
 

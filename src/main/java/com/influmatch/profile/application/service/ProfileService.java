@@ -36,7 +36,7 @@ public class ProfileService {
     private final FileStorageService fileStorageService;
 
     @Transactional
-    public ProfileResponse createBrandProfile(CreateBrandProfileRequest request, MultipartFile logo, MultipartFile profilePhoto) {
+    public BrandProfileResponse createBrandProfile(CreateBrandProfileRequest request, MultipartFile logo, MultipartFile profilePhoto) {
         // Validar rol y existencia de perfil antes de procesar archivos
         User user = getCurrentUser();
         if (user.getRole() != UserRole.BRAND) {
@@ -90,7 +90,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public ProfileResponse createInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
+    public InfluencerProfileResponse createInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.INFLUENCER);
         validateProfileDoesNotExist(user.getId());
@@ -176,7 +176,7 @@ public class ProfileService {
     }
 
     @Transactional(readOnly = true)
-    public ProfileResponse getBrandProfile() {
+    public BrandProfileResponse getBrandProfile() {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.BRAND);
 
@@ -187,7 +187,7 @@ public class ProfileService {
     }
 
     @Transactional(readOnly = true)
-    public ProfileResponse getInfluencerProfile() {
+    public InfluencerProfileResponse getInfluencerProfile() {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.INFLUENCER);
 
@@ -198,7 +198,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public ProfileResponse updateBrandProfile(CreateBrandProfileRequest request, MultipartFile logo, MultipartFile profilePhoto) {
+    public BrandProfileResponse updateBrandProfile(CreateBrandProfileRequest request, MultipartFile logo, MultipartFile profilePhoto) {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.BRAND);
 
@@ -248,7 +248,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public ProfileResponse updateInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
+    public InfluencerProfileResponse updateInfluencerProfile(CreateInfluencerProfileRequest request, MultipartFile photo, MultipartFile profilePhoto, List<MultipartFile> attachmentFiles) {
         User user = getCurrentUser();
         validateUserRole(user, UserRole.INFLUENCER);
 
@@ -379,8 +379,8 @@ public class ProfileService {
         return filename.substring(lastDotIndex + 1).toLowerCase();
     }
 
-    private ProfileResponse toBrandProfileResponse(BrandProfile profile) {
-        return ProfileResponse.builder()
+    private BrandProfileResponse toBrandProfileResponse(BrandProfile profile) {
+        return BrandProfileResponse.builder()
                 .id(profile.getId())
                 .name(profile.getName())
                 .sector(profile.getSector())
@@ -406,8 +406,8 @@ public class ProfileService {
                 .build();
     }
 
-    private ProfileResponse toInfluencerProfileResponse(InfluencerProfile profile) {
-        return ProfileResponse.builder()
+    private InfluencerProfileResponse toInfluencerProfileResponse(InfluencerProfile profile) {
+        return InfluencerProfileResponse.builder()
                 .id(profile.getId())
                 .name(profile.getName())
                 .niches(profile.getNiches().stream().toList())
