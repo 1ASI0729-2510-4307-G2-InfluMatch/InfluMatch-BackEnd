@@ -18,6 +18,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/profiles")
@@ -27,24 +31,48 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfileController {
     private final ProfileService profileService;
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Tipo de contenido no soportado");
+        error.put("mensaje", "El endpoint no acepta el tipo de contenido enviado. Por favor, use el endpoint correcto:");
+        error.put("para_json", "Use /api/profiles/brand/json para enviar datos en formato JSON");
+        error.put("para_multipart", "Use /api/profiles/brand para enviar datos en formato multipart/form-data");
+        error.put("detalles", ex.getMessage());
+        
+        return ResponseEntity
+                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
     }
 
     @ExceptionHandler(ProfileException.class)
-    public ResponseEntity<String> handleProfileException(ProfileException e) {
-        return ResponseEntity.status(403).body(e.getMessage());
+    public ResponseEntity<Map<String, String>> handleProfileException(ProfileException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Error de perfil");
+        error.put("mensaje", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(ProfileAlreadyExistsException.class)
-    public ResponseEntity<String> handleProfileAlreadyExistsException(ProfileAlreadyExistsException e) {
-        return ResponseEntity.status(409).body(e.getMessage());
+    public ResponseEntity<Map<String, String>> handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Perfil ya existe");
+        error.put("mensaje", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Datos inválidos");
+        error.put("mensaje", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @Operation(
         summary = "Crear perfil de marca",
-        description = "Crea un nuevo perfil para una marca. Requiere rol BRAND y no tener un perfil existente."
+        description = "Crea un nuevo perfil para una marca usando JSON. Requiere rol BRAND y no tener un perfil existente."
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -68,13 +96,11 @@ public class ProfileController {
             content = @Content
         )
     })
-    @PostMapping(value = "/brand", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/brand", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createBrandProfile(
-            @Parameter(description = "Logo de la marca (opcional)") @RequestPart(required = false) MultipartFile logo,
-            @Parameter(description = "Foto de perfil (opcional)") @RequestPart(required = false) MultipartFile profilePhoto,
-            @Parameter(description = "Datos del perfil", required = true) @RequestPart @Valid CreateBrandProfileRequest request) {
+            @Parameter(description = "Datos del perfil", required = true) @RequestBody @Valid CreateBrandProfileRequest request) {
         try {
-            BrandProfileResponse response = profileService.createBrandProfile(request, logo, profilePhoto);
+            BrandProfileResponse response = profileService.createBrandProfile(request, null, null);
             return ResponseEntity.ok(response);
         } catch (ProfileAlreadyExistsException e) {
             return ResponseEntity.status(409).body(e.getMessage());
