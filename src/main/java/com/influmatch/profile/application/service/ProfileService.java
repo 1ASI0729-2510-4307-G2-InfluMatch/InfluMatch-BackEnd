@@ -37,9 +37,14 @@ public class ProfileService {
 
     @Transactional
     public ProfileResponse createBrandProfile(CreateBrandProfileRequest request, MultipartFile logo, MultipartFile profilePhoto) {
+        // Validar rol y existencia de perfil antes de procesar archivos
         User user = getCurrentUser();
-        validateUserRole(user, UserRole.BRAND);
-        validateProfileDoesNotExist(user.getId());
+        if (user.getRole() != UserRole.BRAND) {
+            throw new ProfileException("User role mismatch: expected BRAND but was " + user.getRole());
+        }
+        if (brandProfileRepository.existsByUserId(user.getId()) || influencerProfileRepository.existsByUserId(user.getId())) {
+            throw new ProfileAlreadyExistsException("Profile already exists for user ID: " + user.getId());
+        }
 
         BrandProfile profile = new BrandProfile(
             request.getName(),
