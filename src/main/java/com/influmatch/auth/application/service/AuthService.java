@@ -81,14 +81,24 @@ public class AuthService {
             if (hasProfile) {
                 var profile = influencerProfileRepository.findByUserId(user.getId());
                 name = profile.get().getName();
-                photoUrl = profile.get().getPhotoUrl();
+                String photoPath = profile.get().getProfilePhotoUrl() != null ? 
+                    profile.get().getProfilePhotoUrl() : 
+                    profile.get().getPhotoUrl();
+                if (photoPath != null) {
+                    photoUrl = fileStorageService.readFileAsBase64(photoPath);
+                }
             }
         } else if (user.getRole() == UserRole.BRAND) {
             hasProfile = brandProfileRepository.existsByUserId(user.getId());
             if (hasProfile) {
                 var profile = brandProfileRepository.findByUserId(user.getId());
                 name = profile.get().getName();
-                photoUrl = profile.get().getLogoUrl();
+                String photoPath = profile.get().getProfilePhotoUrl() != null ? 
+                    profile.get().getProfilePhotoUrl() : 
+                    profile.get().getLogoUrl();
+                if (photoPath != null) {
+                    photoUrl = fileStorageService.readFileAsBase64(photoPath);
+                }
             }
         }
 
