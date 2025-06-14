@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,11 +28,10 @@ public class CreateInfluencerProfileRequest {
     private Set<@NotBlank(message = "Niche cannot be blank") String> niches = new HashSet<>();
 
     @NotBlank(message = "Bio is required")
-    @Size(min = 50, max = 1000, message = "Bio must be between 50 and 1000 characters")
     private String bio;
 
-    @NotBlank(message = "Country code is required")
-    @Pattern(regexp = "^[A-Z]{2}$", message = "Country must be a valid ISO 3166-1 alpha-2 code")
+    @Schema(description = "País del influencer", example = "Perú")
+    @NotBlank(message = "Country is required")
     private String country;
 
     private String photo;  // Base64 or null if using multipart

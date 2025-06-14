@@ -135,9 +135,32 @@ public class ProfileController {
         content = @Content(schema = @Schema(implementation = InfluencerProfileResponse.class))
     )
     @PostMapping(value = "/influencer", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public InfluencerProfileResponse createInfluencerProfile(
+    public ResponseEntity<?> createInfluencerProfile(
             @Parameter(description = "Datos del perfil", required = true) @RequestBody @Valid CreateInfluencerProfileRequest request) {
-        return profileService.createInfluencerProfile(request, null, null, null);
+        try {
+            InfluencerProfileResponse response = profileService.createInfluencerProfile(request, null, null, null);
+            return ResponseEntity.ok(response);
+        } catch (ProfileAlreadyExistsException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Perfil ya existe");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(409).body(error);
+        } catch (ProfileException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error de permisos");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(403).body(error);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Datos inválidos");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error interno del servidor");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
 
     @Operation(
