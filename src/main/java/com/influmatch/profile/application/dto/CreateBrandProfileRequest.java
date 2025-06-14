@@ -3,7 +3,6 @@ package com.influmatch.profile.application.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import lombok.AllArgsConstructor;
@@ -29,9 +28,8 @@ public class CreateBrandProfileRequest {
     @NotBlank(message = "Sector is required")
     private String sector;
 
-    @Schema(description = "Código de país ISO 3166-1 alpha-2", example = "US")
-    @NotBlank(message = "Country code is required")
-    @Pattern(regexp = "^[A-Z]{2}$", message = "Country must be a valid ISO 3166-1 alpha-2 code")
+    @Schema(description = "País de la marca", example = "Perú")
+    @NotBlank(message = "Country is required")
     private String country;
 
     @Schema(description = "Descripción detallada de la marca")

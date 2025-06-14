@@ -103,11 +103,25 @@ public class ProfileController {
             BrandProfileResponse response = profileService.createBrandProfile(request, null, null);
             return ResponseEntity.ok(response);
         } catch (ProfileAlreadyExistsException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Perfil ya existe");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(409).body(error);
         } catch (ProfileException e) {
-            return ResponseEntity.status(403).body(e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error de permisos");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(403).body(error);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Datos inválidos");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error interno del servidor");
+            error.put("mensaje", e.getMessage());
+            return ResponseEntity.status(500).body(error);
         }
     }
 
