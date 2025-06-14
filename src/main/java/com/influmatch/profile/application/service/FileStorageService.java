@@ -1,36 +1,24 @@
 package com.influmatch.profile.application.service;
 
 import com.influmatch.profile.domain.exception.ProfileException;
+import com.influmatch.profile.domain.model.entity.StoredFile;
+import com.influmatch.profile.infrastructure.repository.StoredFileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class FileStorageService {
-    private final Path uploadPath;
+    private final StoredFileRepository storedFileRepository;
     private final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif");
     private final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of("mp4", "mov", "avi");
     private final Set<String> ALLOWED_DOCUMENT_EXTENSIONS = Set.of("pdf", "doc", "docx");
-
-    public FileStorageService() {
-        this.uploadPath = Paths.get("uploads");
-        createUploadDirectory();
-    }
-
-    private void createUploadDirectory() {
-        try {
-            Files.createDirectories(uploadPath);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory", e);
-        }
-    }
 
     public String storeFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -47,9 +35,13 @@ public class FileStorageService {
 
         try {
             String filename = generateUniqueFilename(file);
-            Path targetPath = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), targetPath);
-            return "/uploads/" + filename;
+            StoredFile storedFile = new StoredFile(
+                filename,
+                file.getContentType(),
+                file.getBytes()
+            );
+            StoredFile savedFile = storedFileRepository.save(storedFile);
+            return String.valueOf(savedFile.getId());
         } catch (IOException e) {
             throw new RuntimeException("Could not store file", e);
         }
@@ -64,31 +56,33 @@ public class FileStorageService {
 
         try {
             String filename = UUID.randomUUID() + "." + extension;
-            Path targetPath = uploadPath.resolve(filename);
+            String mimeType = getMimeTypeForExtension(extension);
             
             byte[] decodedData = Base64.getDecoder().decode(base64Data);
-            Files.write(targetPath, decodedData);
+            StoredFile storedFile = new StoredFile(filename, mimeType, decodedData);
+            StoredFile savedFile = storedFileRepository.save(storedFile);
             
-            return "/uploads/" + filename;
+            return String.valueOf(savedFile.getId());
         } catch (IllegalArgumentException e) {
             throw new ProfileException("Invalid Base64 data");
-        } catch (IOException e) {
-            throw new RuntimeException("Could not store base64 file", e);
         }
     }
 
-    public String readFileAsBase64(String filePath) {
-        if (filePath == null || filePath.isEmpty()) {
+    public String readFileAsBase64(String fileId) {
+        if (fileId == null || fileId.isEmpty()) {
             return null;
         }
 
         try {
-            String relativePath = filePath.replace("/uploads/", "");
-            Path targetPath = uploadPath.resolve(relativePath);
-            byte[] fileData = Files.readAllBytes(targetPath);
-            return Base64.getEncoder().encodeToString(fileData);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read file", e);
+            Long id = Long.parseLong(fileId);
+            StoredFile file = storedFileRepository.findById(id)
+                .orElse(null);
+            if (file == null) {
+                return null;
+            }
+            return Base64.getEncoder().encodeToString(file.getData());
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
@@ -112,5 +106,20 @@ public class FileStorageService {
             !ALLOWED_DOCUMENT_EXTENSIONS.contains(extension)) {
             throw new ProfileException("File extension not allowed: " + extension);
         }
+    }
+
+    private String getMimeTypeForExtension(String extension) {
+        return switch (extension.toLowerCase()) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "gif" -> "image/gif";
+            case "mp4" -> "video/mp4";
+            case "mov" -> "video/quicktime";
+            case "avi" -> "video/x-msvideo";
+            case "pdf" -> "application/pdf";
+            case "doc" -> "application/msword";
+            case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            default -> "application/octet-stream";
+        };
     }
 } 
