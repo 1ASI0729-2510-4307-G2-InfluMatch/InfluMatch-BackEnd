@@ -9,7 +9,6 @@ import com.influmatch.auth.domain.model.User;
 import com.influmatch.auth.domain.model.UserRole;
 import com.influmatch.auth.domain.model.valueobject.Email;
 import com.influmatch.auth.domain.repository.UserRepository;
-import com.influmatch.auth.infrastructure.security.CurrentUser;
 import com.influmatch.profile.domain.model.entity.BrandProfile;
 import com.influmatch.profile.domain.model.entity.InfluencerProfile;
 import com.influmatch.profile.domain.repository.BrandProfileRepository;
@@ -17,11 +16,8 @@ import com.influmatch.profile.domain.repository.InfluencerProfileRepository;
 import com.influmatch.profile.application.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,11 +33,11 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(new Email(request.getEmail()))) {
-            throw new IllegalArgumentException("El email ya está registrado");
+            throw new RuntimeException("Email already registered");
         }
 
         User user = userAssembler.toEntity(request);
-        user = userRepository.save(user);
+        userRepository.save(user);
 
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -58,42 +54,41 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .profileCompleted(hasProfile)
                 .userId(user.getId())
+                .profileType(user.getRole().toString())
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
+        // Autenticar al usuario
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        CurrentUser currentUser = (CurrentUser) authentication.getPrincipal();
-        User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        // Obtener el usuario del repositorio
+        User user = userRepository.findByEmail(new Email(request.getEmail()))
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
         boolean hasProfile = false;
-        String photoUrl = null;
         String name = null;
+        String photoUrl = null;
 
         if (user.getRole() == UserRole.INFLUENCER) {
             hasProfile = influencerProfileRepository.existsByUserId(user.getId());
             if (hasProfile) {
-                Optional<InfluencerProfile> profile = influencerProfileRepository.findByUserId(user.getId());
-                if (profile.isPresent()) {
-                    photoUrl = fileStorageService.readFileAsBase64(profile.get().getPhotoUrl());
-                    name = profile.get().getName();
-                }
+                var profile = influencerProfileRepository.findByUserId(user.getId());
+                name = profile.get().getName();
+                photoUrl = profile.get().getPhotoUrl();
             }
         } else if (user.getRole() == UserRole.BRAND) {
             hasProfile = brandProfileRepository.existsByUserId(user.getId());
             if (hasProfile) {
-                Optional<BrandProfile> profile = brandProfileRepository.findByUserId(user.getId());
-                if (profile.isPresent()) {
-                    photoUrl = fileStorageService.readFileAsBase64(profile.get().getLogoUrl());
-                    name = profile.get().getName();
-                }
+                var profile = brandProfileRepository.findByUserId(user.getId());
+                name = profile.get().getName();
+                photoUrl = profile.get().getLogoUrl();
             }
         }
 
@@ -102,8 +97,9 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .profileCompleted(hasProfile)
                 .userId(user.getId())
-                .photoUrl(photoUrl)
+                .profileType(user.getRole().toString())
                 .name(name)
+                .photoUrl(photoUrl)
                 .build();
     }
 
@@ -153,6 +149,7 @@ public class AuthService {
                 .refreshToken(newRefreshToken)
                 .profileCompleted(user.isProfileCompleted())
                 .userId(user.getId())
+                .profileType(user.getRole().toString())
                 .photoUrl(photoBase64)
                 .build();
     }

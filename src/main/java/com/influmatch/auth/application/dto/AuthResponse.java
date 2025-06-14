@@ -26,6 +26,9 @@ public class AuthResponse {
     @Schema(description = "ID del usuario autenticado", example = "123")
     private Long userId;
 
+    @Schema(description = "Tipo de perfil del usuario (INFLUENCER o BRAND)", example = "INFLUENCER")
+    private String profileType;
+
     @Schema(description = "Nombre del usuario", example = "John Doe", required = false)
     private String name;
 
