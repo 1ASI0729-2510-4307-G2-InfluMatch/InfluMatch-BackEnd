@@ -81,4 +81,19 @@ public class DashboardController {
     public DashboardBrandDetailDto getBrandDetail(@PathVariable Long id) {
         return dashboardService.getBrandDetail(id);
     }
+
+    @Operation(
+        summary = "Obtener detalle de marca por ID de usuario",
+        description = "Obtiene el perfil completo de una marca por el ID de su usuario"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Perfil de marca encontrado",
+        content = @Content(schema = @Schema(implementation = DashboardBrandDetailDto.class))
+    )
+    @GetMapping("/brands/user/{userId}")
+    public DashboardBrandDetailDto getBrandDetailByUserId(@PathVariable Long userId) {
+        return dashboardService.getBrandDetailByUserId(userId);
+    }
 } 
+

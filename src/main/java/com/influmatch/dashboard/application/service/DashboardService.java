@@ -52,8 +52,23 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardBrandDetailDto getBrandDetail(Long id) {
+        // First try to find by profile ID
         BrandProfile profile = brandProfileRepository.findById(id)
-                .orElseThrow(() -> new ProfileNotFoundException("Brand profile not found with ID: " + id));
+                .orElse(null);
+        
+        // If not found, try to find by user ID
+        if (profile == null) {
+            profile = brandProfileRepository.findByUserId(id)
+                    .orElseThrow(() -> new ProfileNotFoundException("Brand profile not found with ID: " + id));
+        }
+        
+        return toBrandDetailDto(profile);
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardBrandDetailDto getBrandDetailByUserId(Long userId) {
+        BrandProfile profile = brandProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException("Brand profile not found with user ID: " + userId));
         return toBrandDetailDto(profile);
     }
 
