@@ -45,8 +45,8 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardInfluencerDetailDto getInfluencerDetail(Long id) {
-        InfluencerProfile profile = influencerProfileRepository.findById(id)
-                .orElseThrow(() -> new ProfileNotFoundException("Influencer profile not found with ID: " + id));
+        InfluencerProfile profile = influencerProfileRepository.findByUserId(id)
+                .orElseThrow(() -> new ProfileNotFoundException("Influencer profile not found with user ID: " + id));
         return toInfluencerDetailDto(profile);
     }
 

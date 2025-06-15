@@ -15,6 +15,12 @@ public class AgendaEventDto {
     @Schema(description = "ID de la colaboración")
     private Long collaborationId;
 
+    @Schema(description = "ID del usuario que envió la solicitud")
+    private Long initiatorId;
+
+    @Schema(description = "ID del usuario que recibió la solicitud")
+    private Long counterpartId;
+
     @Schema(description = "Fecha del evento", example = "2024-03-25")
     private String date;
 

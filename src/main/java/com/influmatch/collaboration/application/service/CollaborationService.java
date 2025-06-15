@@ -149,6 +149,8 @@ public class CollaborationService {
                 .flatMap(collaboration -> collaboration.getMilestones().stream()
                         .map(milestone -> AgendaEventDto.builder()
                                 .collaborationId(collaboration.getId())
+                                .initiatorId(collaboration.getInitiatorId())
+                                .counterpartId(collaboration.getCounterpartId())
                                 .date(milestone.getDate().toString())
                                 .eventTitle(milestone.getTitle())
                                 .description(milestone.getDescription())
