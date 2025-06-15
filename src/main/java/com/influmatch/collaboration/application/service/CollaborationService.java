@@ -195,6 +195,7 @@ public class CollaborationService {
                 .initiatorRole(collaboration.getInitiatorRole().toString())
                 .status(collaboration.getStatus().toString())
                 .counterpartName(getCounterpartName(collaboration, collaboration.getInitiatorId()))
+                .counterpartPhotoUrl(getCounterpartPhotoUrl(collaboration, collaboration.getInitiatorId()))
                 .message(collaboration.getMessage())
                 .actionType(collaboration.getActionType().toString())
                 .createdAt(collaboration.getCreatedAt())
@@ -248,6 +249,30 @@ public class CollaborationService {
             return influencerProfileRepository.findByUserId(counterpartId)
                     .map(InfluencerProfile::getName)
                     .orElse("Unknown Influencer");
+        }
+    }
+
+    private String getCounterpartPhotoUrl(Collaboration collaboration, Long currentUserId) {
+        Long counterpartId;
+        if (collaboration.getInitiatorId().equals(currentUserId)) {
+            counterpartId = collaboration.getCounterpartId();
+        } else if (collaboration.getCounterpartId().equals(currentUserId)) {
+            counterpartId = collaboration.getInitiatorId();
+        } else {
+            throw new IllegalStateException("User is not part of this collaboration");
+        }
+
+        User counterpart = userRepository.findById(counterpartId)
+                .orElseThrow(() -> new IllegalStateException("Counterpart not found"));
+
+        if (counterpart.getRole() == UserRole.BRAND) {
+            return brandProfileRepository.findByUserId(counterpartId)
+                    .map(profile -> fileStorageService.readFileAsBase64(profile.getLogoUrl()))
+                    .orElse(null);
+        } else {
+            return influencerProfileRepository.findByUserId(counterpartId)
+                    .map(profile -> fileStorageService.readFileAsBase64(profile.getPhotoUrl()))
+                    .orElse(null);
         }
     }
 

@@ -27,6 +27,9 @@ public class CollaborationListDto {
     @Schema(description = "Nombre de la contraparte")
     private String counterpartName;
 
+    @Schema(description = "Foto de la contraparte en base64")
+    private String counterpartPhotoUrl;
+
     @Schema(description = "Mensaje de la colaboración")
     private String message;
 
