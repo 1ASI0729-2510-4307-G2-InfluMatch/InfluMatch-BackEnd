@@ -21,6 +21,12 @@ public class CollaborationDetailDto {
     @Schema(description = "ID de la colaboración")
     private Long id;
 
+    @Schema(description = "ID del usuario que envió la solicitud")
+    private Long initiatorId;
+
+    @Schema(description = "ID del usuario que recibió la solicitud")
+    private Long counterpartId;
+
     @Schema(description = "Estado actual", example = "PENDING")
     private String status;
 

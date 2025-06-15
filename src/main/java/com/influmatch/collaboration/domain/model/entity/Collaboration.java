@@ -122,6 +122,11 @@ public class Collaboration extends AuditableEntity {
         this.status = CollaborationStatus.FINISHED;
     }
 
+    public void cancel() {
+        validateStatusIs(CollaborationStatus.PENDING);
+        this.status = CollaborationStatus.CANCELED;
+    }
+
     public void update(String message, LocalDate targetDate, ActionType actionType, BigDecimal budget,
                       List<Milestone> milestones, String location, String deliverables) {
         validateStatusIs(CollaborationStatus.PENDING);

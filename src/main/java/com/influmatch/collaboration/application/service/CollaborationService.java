@@ -74,7 +74,7 @@ public class CollaborationService {
                 collaborationRepository.findAllByUser(currentUser.getId());
 
         return collaborations.stream()
-                .map(this::toCollaborationListDto)
+                .map(collaboration -> toCollaborationListDto(collaboration, currentUser.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -98,6 +98,10 @@ public class CollaborationService {
             case "REJECT" -> {
                 validateIsRecipient(collaboration, currentUser);
                 collaboration.reject();
+            }
+            case "CANCEL" -> {
+                validateIsInitiator(collaboration, currentUser);
+                collaboration.cancel();
             }
             case "FINISH" -> {
                 validateIsInitiator(collaboration, currentUser);
@@ -189,22 +193,30 @@ public class CollaborationService {
         }
     }
 
-    private CollaborationListDto toCollaborationListDto(Collaboration collaboration) {
+    private CollaborationListDto toCollaborationListDto(Collaboration collaboration, Long currentUserId) {
         return CollaborationListDto.builder()
                 .id(collaboration.getId())
+                .initiatorId(collaboration.getInitiatorId())
+                .counterpartId(collaboration.getCounterpartId())
                 .initiatorRole(collaboration.getInitiatorRole().toString())
                 .status(collaboration.getStatus().toString())
-                .counterpartName(getCounterpartName(collaboration, collaboration.getInitiatorId()))
-                .counterpartPhotoUrl(getCounterpartPhotoUrl(collaboration, collaboration.getInitiatorId()))
+                .counterpartName(getCounterpartName(collaboration, currentUserId))
+                .counterpartPhotoUrl(getCounterpartPhotoUrl(collaboration, currentUserId))
                 .message(collaboration.getMessage())
                 .actionType(collaboration.getActionType().toString())
                 .createdAt(collaboration.getCreatedAt())
                 .build();
     }
 
+    private CollaborationListDto toCollaborationListDto(Collaboration collaboration) {
+        return toCollaborationListDto(collaboration, collaboration.getInitiatorId());
+    }
+
     private CollaborationDetailDto toCollaborationDetailDto(Collaboration collaboration) {
         return CollaborationDetailDto.builder()
                 .id(collaboration.getId())
+                .initiatorId(collaboration.getInitiatorId())
+                .counterpartId(collaboration.getCounterpartId())
                 .status(collaboration.getStatus().toString())
                 .initiatorRole(collaboration.getInitiatorRole().toString())
                 .counterpart(getCounterpartInfo(collaboration))

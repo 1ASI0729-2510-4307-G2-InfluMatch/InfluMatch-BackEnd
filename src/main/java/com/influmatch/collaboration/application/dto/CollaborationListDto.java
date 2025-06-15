@@ -18,6 +18,12 @@ public class CollaborationListDto {
     @Schema(description = "ID de la colaboración")
     private Long id;
 
+    @Schema(description = "ID del usuario que envió la solicitud")
+    private Long initiatorId;
+
+    @Schema(description = "ID del usuario que recibió la solicitud")
+    private Long counterpartId;
+
     @Schema(description = "Rol del iniciador", example = "BRAND")
     private String initiatorRole;
 
