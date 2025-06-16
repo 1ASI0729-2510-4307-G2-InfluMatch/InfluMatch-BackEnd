@@ -4,6 +4,8 @@ import com.influmatch.auth.domain.model.User;
 import com.influmatch.auth.domain.model.UserRole;
 import com.influmatch.auth.domain.repository.UserRepository;
 import com.influmatch.chat.application.dto.ChatListResponseDto;
+import com.influmatch.chat.application.dto.ChatMessagesResponseDto;
+import com.influmatch.chat.application.dto.MessageDetailDto;
 import com.influmatch.chat.application.dto.MessageResponseDto;
 import com.influmatch.chat.application.dto.SendMessageRequestDto;
 import com.influmatch.chat.application.service.ChatService;
@@ -112,24 +114,66 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<MessageResponseDto> getChatMessages(Long chatId) {
-        Long userId = securityUtils.getCurrentUserId();
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Chat not found"));
-
-        if (!chat.getUserId().equals(userId) && !chat.getInterlocutorId().equals(userId)) {
-            throw new RuntimeException("User is not a participant in this chat");
-        }
+    @Transactional
+    public ChatMessagesResponseDto getChatMessages(Long userId) {
+        Long currentUserId = securityUtils.getCurrentUserId();
+        
+        // Find the chat between current user and the specified user, or create one if it doesn't exist
+        Chat chat = chatRepository.findChatsByUserId(currentUserId).stream()
+                .filter(c -> c.getInterlocutorId().equals(userId))
+                .findFirst()
+                .orElseGet(() -> {
+                    // Create a new chat if none exists (similar to sendMessage behavior)
+                    Chat newChat = Chat.builder()
+                            .userId(currentUserId)
+                            .interlocutorId(userId)
+                            .unreadCount(0)
+                            .build();
+                    return chatRepository.save(newChat);
+                });
 
         // Reset unread count for the current user
         if (chat.getUnreadCount() > 0) {
-            chatRepository.updateUnreadCount(chatId, userId, 0);
+            chatRepository.updateUnreadCount(chat.getChatId(), currentUserId, 0);
         }
 
-        return chatRepository.findMessagesByChatId(chatId).stream()
-                .map(this::toMessageResponseDto)
+        // Get interlocutor information
+        User interlocutor = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Interlocutor not found"));
+
+        String interlocutorName;
+        String interlocutorPhotoUrl;
+
+        if (interlocutor.getRole() == UserRole.BRAND) {
+            BrandProfile profile = brandProfileRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("Brand profile not found"));
+            interlocutorName = profile.getName();
+            interlocutorPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getLogoUrl();
+        } else {
+            InfluencerProfile profile = influencerProfileRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("Influencer profile not found"));
+            interlocutorName = profile.getName();
+            interlocutorPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getPhotoUrl();
+        }
+
+        String interlocutorPhotoBase64 = null;
+        if (interlocutorPhotoUrl != null) {
+            interlocutorPhotoBase64 = fileStorageService.readFileAsBase64(interlocutorPhotoUrl);
+        }
+
+        // Get messages with sender details
+        List<MessageDetailDto> messages = chatRepository.findMessagesByChatId(chat.getChatId()).stream()
+                .map(message -> toMessageDetailDto(message, currentUserId))
                 .collect(Collectors.toList());
+
+        return ChatMessagesResponseDto.builder()
+                .interlocutor(ChatMessagesResponseDto.InterlocutorInfo.builder()
+                        .userId(userId)
+                        .name(interlocutorName)
+                        .photoBase64(interlocutorPhotoBase64)
+                        .build())
+                .messages(messages)
+                .build();
     }
 
     private Chat findOrCreateChat(Long userId, Long interlocutorId) {
@@ -208,6 +252,44 @@ public class ChatServiceImpl implements ChatService {
                 .content(message.getContent())
                 .attachmentUrl(message.getAttachmentUrl())
                 .createdAt(message.getCreatedAt())
+                .build();
+    }
+
+    private MessageDetailDto toMessageDetailDto(Message message, Long currentUserId) {
+        // Get sender information
+        User sender = userRepository.findById(message.getSenderId())
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+
+        String senderName;
+        String senderPhotoUrl;
+
+        if (sender.getRole() == UserRole.BRAND) {
+            BrandProfile profile = brandProfileRepository.findByUserId(message.getSenderId())
+                    .orElseThrow(() -> new RuntimeException("Brand profile not found"));
+            senderName = profile.getName();
+            senderPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getLogoUrl();
+        } else {
+            InfluencerProfile profile = influencerProfileRepository.findByUserId(message.getSenderId())
+                    .orElseThrow(() -> new RuntimeException("Influencer profile not found"));
+            senderName = profile.getName();
+            senderPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getPhotoUrl();
+        }
+
+        String senderPhotoBase64 = null;
+        if (senderPhotoUrl != null) {
+            senderPhotoBase64 = fileStorageService.readFileAsBase64(senderPhotoUrl);
+        }
+
+        return MessageDetailDto.builder()
+                .messageId(message.getMessageId())
+                .senderId(message.getSenderId())
+                .receiverId(message.getReceiverId())
+                .content(message.getContent())
+                .attachmentUrl(message.getAttachmentUrl())
+                .createdAt(message.getCreatedAt())
+                .isFromMe(message.getSenderId().equals(currentUserId))
+                .senderName(senderName)
+                .senderPhoto(senderPhotoBase64)
                 .build();
     }
 } 

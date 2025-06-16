@@ -1,6 +1,7 @@
 package com.influmatch.chat.interfaces.web;
 
 import com.influmatch.chat.application.dto.ChatListResponseDto;
+import com.influmatch.chat.application.dto.ChatMessagesResponseDto;
 import com.influmatch.chat.application.dto.MessageResponseDto;
 import com.influmatch.chat.application.dto.SendMessageRequestDto;
 import com.influmatch.chat.application.service.ChatService;
@@ -36,10 +37,10 @@ public class ChatController {
         return ResponseEntity.ok(chatService.sendMessage(receiverId, request));
     }
 
-    @GetMapping("/{chatId}/messages")
-    @Operation(summary = "Get messages from a chat")
-    public ResponseEntity<List<MessageResponseDto>> getChatMessages(
-            @PathVariable Long chatId) {
-        return ResponseEntity.ok(chatService.getChatMessages(chatId));
+    @GetMapping("/{userId}/messages")
+    @Operation(summary = "Get messages from a chat with a specific user")
+    public ResponseEntity<ChatMessagesResponseDto> getChatMessages(
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(chatService.getChatMessages(userId));
     }
 } 
