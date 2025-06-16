@@ -34,10 +34,4 @@ public class MessageDetailDto {
     
     @Schema(description = "Indicates if the message was sent by the current user", example = "true")
     private Boolean isFromMe;
-    
-    @Schema(description = "Name of the sender", example = "Ana Fitness")
-    private String senderName;
-    
-    @Schema(description = "Photo of the sender in base64", example = "data:image/jpeg;base64,/9j/4AAQ...")
-    private String senderPhoto;
 } 

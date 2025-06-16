@@ -256,30 +256,6 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private MessageDetailDto toMessageDetailDto(Message message, Long currentUserId) {
-        // Get sender information
-        User sender = userRepository.findById(message.getSenderId())
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
-
-        String senderName;
-        String senderPhotoUrl;
-
-        if (sender.getRole() == UserRole.BRAND) {
-            BrandProfile profile = brandProfileRepository.findByUserId(message.getSenderId())
-                    .orElseThrow(() -> new RuntimeException("Brand profile not found"));
-            senderName = profile.getName();
-            senderPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getLogoUrl();
-        } else {
-            InfluencerProfile profile = influencerProfileRepository.findByUserId(message.getSenderId())
-                    .orElseThrow(() -> new RuntimeException("Influencer profile not found"));
-            senderName = profile.getName();
-            senderPhotoUrl = profile.getProfilePhotoUrl() != null ? profile.getProfilePhotoUrl() : profile.getPhotoUrl();
-        }
-
-        String senderPhotoBase64 = null;
-        if (senderPhotoUrl != null) {
-            senderPhotoBase64 = fileStorageService.readFileAsBase64(senderPhotoUrl);
-        }
-
         return MessageDetailDto.builder()
                 .messageId(message.getMessageId())
                 .senderId(message.getSenderId())
@@ -288,8 +264,6 @@ public class ChatServiceImpl implements ChatService {
                 .attachmentUrl(message.getAttachmentUrl())
                 .createdAt(message.getCreatedAt())
                 .isFromMe(message.getSenderId().equals(currentUserId))
-                .senderName(senderName)
-                .senderPhoto(senderPhotoBase64)
                 .build();
     }
 } 
