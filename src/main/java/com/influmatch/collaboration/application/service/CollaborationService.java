@@ -210,9 +210,7 @@ public class CollaborationService {
                 .build();
     }
 
-    private CollaborationListDto toCollaborationListDto(Collaboration collaboration) {
-        return toCollaborationListDto(collaboration, collaboration.getInitiatorId());
-    }
+
 
     private CollaborationDetailDto toCollaborationDetailDto(Collaboration collaboration) {
         return CollaborationDetailDto.builder()
