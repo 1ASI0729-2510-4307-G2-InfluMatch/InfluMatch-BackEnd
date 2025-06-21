@@ -26,12 +26,12 @@ application:
 ---
 
 #############################
-# prod (Render / Azure App Service)
+# prod (Azure App Service)
 #############################
 spring:
   config:
     activate:
-      on-profile: prod  # <-- solo se activa si SPRING_PROFILES_ACTIVE=prod
+      on-profile: prod
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -40,13 +40,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  # opcional, puedes cambiar a `validate` en producción
-
+      ddl-auto: update
   flyway:
-    enabled: true       # también aplicable en prod si tienes migraciones
+    enabled: true
 
 server:
-  port: 80              # Render expone por defecto el puerto 80
+  port: ${PORT:8080}      # PORT si existe, fallback 8080
 
 application:
   security:
