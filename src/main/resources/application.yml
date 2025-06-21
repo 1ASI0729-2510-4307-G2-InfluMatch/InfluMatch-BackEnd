@@ -7,28 +7,48 @@ spring:
     username: postgres
     password: secret123
   jpa:
-    hibernate.ddl-auto: update
-  flyway.enabled: true
-server.port: 8080
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: true
 
-application.security.jwt:
-  secret-key: 404E63...
-  expiration: 86400000
-  refresh-token.expiration: 604800000
+server:
+  port: 8080
+
+application:
+  security:
+    jwt:
+      secret-key: 404E63...
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
 
 ---
 
 #############################
-# prod  (Azure App Service)
+# prod (Render / Azure App Service)
 #############################
 spring:
-  config.activate.on-profile: prod        # <-- se carga SOLO si SPRING_PROFILES_ACTIVE=prod
+  config:
+    activate:
+      on-profile: prod  # <-- solo se activa si SPRING_PROFILES_ACTIVE=prod
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 
-server.port: 80                           # App Service expone el 80
+  jpa:
+    hibernate:
+      ddl-auto: update  # opcional, puedes cambiar a `validate` en producción
 
-application.security.jwt.secret-key: ${APPLICATION_SECURITY_JWT_SECRET_KEY}
+  flyway:
+    enabled: true       # también aplicable en prod si tienes migraciones
+
+server:
+  port: 80              # Render expone por defecto el puerto 80
+
+application:
+  security:
+    jwt:
+      secret-key: ${APPLICATION_SECURITY_JWT_SECRET_KEY}
